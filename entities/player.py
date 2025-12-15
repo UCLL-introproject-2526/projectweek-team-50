@@ -11,7 +11,8 @@ class Player:
         self.velocity = pygame.Vector2(0, 0)
 
         self.size = size
-        self.rect = pygame.Rect(
+        self.rect = pygame.Rect
+        (
             self.position.x,
             self.position.y,
             size[0],
@@ -46,12 +47,4 @@ class Player:
 
 
     def draw(self, surface):
-        if self.shape == "rect":
-            pygame.draw.rect(surface, WHITE, self.rect)
-        else:
-            pygame.draw.circle(
-                surface,
-                WHITE,
-                self.rect.center,
-                self.radius
-            )
+        pygame.draw.rect(surface, WHITE, self.rect)
