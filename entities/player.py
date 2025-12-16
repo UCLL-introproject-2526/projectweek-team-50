@@ -1,46 +1,55 @@
 import pygame
-from settings import WHITE
+from settings import TILE_SIZE, WHITE
 
 class Player:
-    def __init__(self, position, size, shape="rect"):
-        self.position = pygame.Vector2(position)
-        self.shape = shape
-        self.speed = 300
-        self.velocity = pygame.Vector2(0, 0)
-        self.size = size
+    def __init__(self, tile_pos):
+        self.tile_x, self.tile_y = tile_pos
+        self.target_x, self.target_y = tile_pos  # Where we are moving to
 
-        # Create a mutable rect
-        self.rect = pygame.Rect(int(self.position.x), int(self.position.y),
-                                size[0], size[1])
+        self.move_delay = 0.15  # seconds per tile
+        self.timer = 0.0
+
+        # Current position for smooth movement
+        self.pos_x = self.tile_x * TILE_SIZE
+        self.pos_y = self.tile_y * TILE_SIZE
+
+        self.rect = pygame.Rect(self.pos_x, self.pos_y, TILE_SIZE, TILE_SIZE)
+        self.lerp_speed = 12.0  # Higher = faster interpolation
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
-        self.velocity.x = 0
-        self.velocity.y = 0
+        dx = dy = 0
 
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            self.velocity.x = -1
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            self.velocity.x = 1
-        if keys[pygame.K_w] or keys[pygame.K_UP]:
-            self.velocity.y = -1
-        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            self.velocity.y = 1
+            dx = -1
+        elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            dx = 1
+        elif keys[pygame.K_w] or keys[pygame.K_UP]:
+            dy = -1
+        elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            dy = 1
 
-        # Normalize to prevent diagonal speed boost
-        if self.velocity.length_squared() > 0:
-            self.velocity = self.velocity.normalize()
+        return dx, dy
 
-    def update(self, dt):
-        self.handle_input()
-        self.position += self.velocity * self.speed * dt
+    def update(self, dt, tilemap):
+        self.timer += dt
+        if self.timer >= self.move_delay:
+            dx, dy = self.handle_input()
+            if dx != 0 or dy != 0:
+                nx = self.tile_x + dx
+                ny = self.tile_y + dy
+                if not tilemap.is_blocked(nx, ny):
+                    self.tile_x = nx
+                    self.tile_y = ny
+                    self.target_x = nx * TILE_SIZE
+                    self.target_y = ny * TILE_SIZE
+            self.timer = 0.0
 
-        # Update rect safely
-        self.rect.x = int(self.position.x)
-        self.rect.y = int(self.position.y)
+        # Smoothly interpolate position toward target
+        self.pos_x += (self.target_x - self.pos_x) * min(self.lerp_speed * dt, 1)
+        self.pos_y += (self.target_y - self.pos_y) * min(self.lerp_speed * dt, 1)
+
+        self.rect.topleft = (self.pos_x, self.pos_y)
 
     def draw(self, surface):
-        if self.shape == "rect":
-            pygame.draw.rect(surface, WHITE, self.rect)
-        else:
-            pygame.draw.circle(surface, WHITE, self.rect.center, self.size)
+        pygame.draw.rect(surface, WHITE, self.rect)

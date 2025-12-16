@@ -1,6 +1,6 @@
-# Window
-SCREEN_WIDTH = 768
-SCREEN_HEIGHT = 480
+# Window (LOGICAL resolution)
+SCREEN_WIDTH = 1536
+SCREEN_HEIGHT = 960
 TITLE = "Team 50"
 
 # Timing
@@ -9,8 +9,22 @@ FPS = 60
 # Colors
 BG_COLOR = (30, 30, 30)
 WHITE = (255, 255, 255)
+GRID_COLOR = (60, 60, 60)
+WALL_COLOR = (80, 80, 80)
 
-
+# Tiles
 TILE_SIZE = 32
-TILES_X = SCREEN_WIDTH // TILE_SIZE   # 1536 / 32 = 48
-TILES_Y = SCREEN_HEIGHT // TILE_SIZE  # 960 / 32 = 30
+TILES_X = SCREEN_WIDTH // TILE_SIZE
+TILES_Y = SCREEN_HEIGHT // TILE_SIZE
+
+
+# Tile IDs
+TILE_GRASS = 0
+TILE_WALL = 1
+TILE_PATH = 2
+
+TILE_COLORS = {
+    TILE_GRASS: (40, 120, 40),   # green
+    TILE_WALL:  (80, 80, 80),    # gray
+    TILE_PATH:  (150, 120, 60),  # brown
+}
