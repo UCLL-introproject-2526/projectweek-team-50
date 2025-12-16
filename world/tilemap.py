@@ -18,6 +18,66 @@ class TileMap:
 
     def is_path(self, tx, ty):
         return self.tiles[ty][tx] == TILE_PATH
+    
+
+    def get_path_points(self):
+        # Find all PATH tiles
+        path_tiles = set()
+        for y in range(TILES_Y):
+            for x in range(TILES_X):
+                if self.tiles[y][x] == TILE_PATH:
+                    path_tiles.add((x, y))
+
+        if not path_tiles:
+            return []
+
+        # Helper to get PATH neighbors
+        def neighbors(tx, ty):
+            dirs = [(1,0), (-1,0), (0,1), (0,-1)]
+            result = []
+            for dx, dy in dirs:
+                n = (tx + dx, ty + dy)
+                if n in path_tiles:
+                    result.append(n)
+            return result
+
+        # Find start tile (only one PATH neighbor)
+        start = None
+        for tile in path_tiles:
+            if len(neighbors(*tile)) == 1:
+                start = tile
+                break
+
+        if start is None:
+            raise ValueError("Path has no valid start tile")
+
+        # Walk the path
+        ordered_tiles = [start]
+        visited = {start}
+
+        current = start
+        while True:
+            next_tiles = [
+                n for n in neighbors(*current)
+                if n not in visited
+            ]
+
+            if not next_tiles:
+                break
+
+            current = next_tiles[0]
+            ordered_tiles.append(current)
+            visited.add(current)
+
+        # Convert tiles → pixel centers
+        path_points = []
+        for tx, ty in ordered_tiles:
+            px = tx * TILE_SIZE + TILE_SIZE // 2
+            py = ty * TILE_SIZE + TILE_SIZE // 2
+            path_points.append((px, py))
+
+        return path_points
+
 
     def draw(self, surface):
         for y in range(TILES_Y):

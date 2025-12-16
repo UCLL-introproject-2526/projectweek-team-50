@@ -9,7 +9,9 @@ FPS = 60
 # Colors
 BG_COLOR = (30, 30, 30)
 WHITE = (255, 255, 255)
-RED = (255, 0, 0)
+RED = (200, 50, 50)
+GREEN = (50, 200, 50)
+BLACK = (0, 0, 0)
 GRID_COLOR = (60, 60, 60)
 WALL_COLOR = (80, 80, 80)
 
