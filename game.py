@@ -1,6 +1,8 @@
 import pygame
 from settings import *
 from entities.player import Player
+from world.tilemap import TileMap
+
 
 class Game:
     def __init__(self):
@@ -8,6 +10,7 @@ class Game:
         pygame.display.set_caption(TITLE)
         self.clock = pygame.time.Clock()
         self.running = True
+        self.tilemap = TileMap()
 
         self.player = Player(
             position=(100, 300),
@@ -23,6 +26,7 @@ class Game:
 
     def draw(self):
         self.screen.fill(BG_COLOR)
+        self.tilemap.draw(self.screen)
         self.player.draw(self.screen)
         pygame.display.flip()
 
