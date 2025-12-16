@@ -1,5 +1,5 @@
 # Window
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 TITLE = "Team 50"
 
@@ -9,3 +9,6 @@ FPS = 60
 # Colors
 BG_COLOR = (30, 30, 30)
 WHITE = (255, 255, 255)
+
+
+TILE_SIZE = 50  # each tile is 50x50 pixels
