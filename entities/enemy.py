@@ -1,5 +1,5 @@
 import pygame
-from pygame.math import Vector2
+from math import Vector2
 from character import Character
 
 class Enemy(Character):
