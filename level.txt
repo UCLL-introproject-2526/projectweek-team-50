@@ -1,9 +1,3 @@
-import pygame
-from settings import *
-from entities.player import Player
-from world.tilemap import TileMap
-
-
 level = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -36,55 +30,3 @@ level = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
- 
-class Game:
-    def __init__(self):
-        # Real window (resizable)
-        self.window = pygame.display.set_mode(
-            (SCREEN_WIDTH, SCREEN_HEIGHT),
-            pygame.RESIZABLE
-        )
-        pygame.display.set_caption(TITLE)
-
-        # Logical render surface
-        self.screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.window_size = self.window.get_size()
-
-        self.clock = pygame.time.Clock()
-        self.running = True
-
-        self.tilemap = TileMap(level)
-
-        self.player = Player(tile_pos=(1, 1))
-
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-
-            elif event.type == pygame.VIDEORESIZE:
-                self.window = pygame.display.set_mode(
-                    (event.w, event.h),
-                    pygame.RESIZABLE
-                )
-                self.window_size = (event.w, event.h)
-
-    def update(self, dt):
-        self.player.update(dt, self.tilemap)
-
-    def draw(self):
-        self.screen.fill(BG_COLOR)
-
-        self.tilemap.draw(self.screen)
-        self.player.draw(self.screen)
-
-        scaled = pygame.transform.scale(self.screen, self.window_size)
-        self.window.blit(scaled, (0, 0))
-        pygame.display.flip()
-
-    def run(self):
-        while self.running:
-            dt = self.clock.tick(FPS) / 1000
-            self.handle_events()
-            self.update(dt)
-            self.draw()
