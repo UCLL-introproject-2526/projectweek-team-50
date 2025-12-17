@@ -1,4 +1,7 @@
 import random
+from typing import Self
+from entities.entity import Entity
+import pygame
 
 from settings import TILE_SIZE
 def handle_death(self, coin_manager, tilemap):
@@ -52,8 +55,13 @@ class CoinManager:
              (x, y, size, size)
          )
 
+class Player(Entity):
+    def __init__(self, tile_pos):
+        super().__init__(tile_pos)
+        self.player_money = 0  # Turkish lira
+
 
 # in Player.update() after moving / set_tile(...)
-collected = coin_manager.collect_at_tile(self.tile_x, self.tile_y)
+collected = CoinManager.collect_at_tile(Self.tile_x, Self.tile_y)
 if collected:
     player_money += collected  # add TL
