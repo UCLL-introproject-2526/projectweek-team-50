@@ -6,6 +6,7 @@ from settings import TILE_SIZE
 
 # Player money starts at 0
 player_money = 0
+
 def handle_death(enemy, coin_manager, tilemap):
     if enemy.dead_handled: 
         return
