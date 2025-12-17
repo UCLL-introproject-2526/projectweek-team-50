@@ -2,6 +2,7 @@ import pygame
 from settings import *
 from shop import Shop
 from shopkeeper import Shopkeeper
+from coins import CoinManager, handle_death
 
 from entities.player import Player
 from entities.troop import Troop
@@ -66,6 +67,9 @@ class Game:
         self.enemies = []
         self.troops = []
         self.projectiles = []
+        
+        # Coin system
+        self.coin_manager = CoinManager()
 
         # Wave system
         self.wave_manager = WaveManager(self.tilemap)
@@ -156,7 +160,7 @@ class Game:
             self.shop.handle_input(self.player)
             return  # pause game logic
 
-        self.player.update(dt, self.tilemap)
+        self.player.update(dt, self.tilemap, self.coin_manager)
 
         # Enemies
         self.wave_manager.update(dt, self.enemies)
@@ -171,12 +175,18 @@ class Game:
         for projectile in self.projectiles:
             projectile.update(dt)
 
-        # Cleanup
+        # Cleanup - handle dead enemies and drop coins
         self.projectiles = [p for p in self.projectiles if p.alive]
-        self.enemies = [
-            e for e in self.enemies
-            if not e.finished and e.health > 0
-        ]
+        
+        # Process dead enemies and spawn coins
+        alive_enemies = []
+        for e in self.enemies:
+            if not e.finished and e.health > 0:
+                alive_enemies.append(e)
+            else:
+                # Enemy died, drop coins
+                handle_death(e, self.coin_manager, self.tilemap)
+        self.enemies = alive_enemies
 
     # -----------------------------
     # Draw
@@ -195,6 +205,9 @@ class Game:
 
         for projectile in self.projectiles:
             projectile.draw(self.screen)
+        
+        # Draw coins
+        self.coin_manager.draw(self.screen)
 
         self.shopkeeper.draw(self.screen, self.player)
 
