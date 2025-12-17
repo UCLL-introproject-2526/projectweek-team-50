@@ -4,11 +4,14 @@ from entities.projectile import Projectile
 from settings import BLUE
 
 class Troop(Entity):
-    def __init__(self, tile_pos, range_radius=160, fire_delay=0.6):
+    def __init__(self, tile_pos, range_radius=160, fire_delay=0.6, damage=20, color=BLUE):
         super().__init__(tile_pos)
 
         self.range = range_radius
         self.fire_delay = fire_delay
+        self.damage = damage
+        self.color = color
+        
         self.timer = 0.0
 
     def update(self, dt, enemies, projectiles):
@@ -16,22 +19,35 @@ class Troop(Entity):
         if self.timer >= self.fire_delay:
             target = self.find_target(enemies)
             if target:
-                projectiles.append(
-                    Projectile(
-                        self.rect.centerx,
-                        self.rect.centery,
-                        target
-                    )
-                )
+                self.attack_target(target, projectiles)
                 self.timer = 0.0
 
     def find_target(self, enemies):
+        best_target = None
+        min_dist = float('inf')
+        
+        # Simple closest target logic
         for e in enemies:
             dx = e.rect.centerx - self.rect.centerx
             dy = e.rect.centery - self.rect.centery
-            if dx * dx + dy * dy <= self.range * self.range:
-                return e
-        return None
+            dist_sq = dx * dx + dy * dy
+            
+            if dist_sq <= self.range * self.range:
+                if dist_sq < min_dist:
+                    min_dist = dist_sq
+                    best_target = e
+        return best_target
+
+    def attack_target(self, target, projectiles):
+        # Default behavior: Shoot Projectile
+        projectiles.append(
+            Projectile(
+                self.rect.centerx,
+                self.rect.centery,
+                target,
+                damage=self.damage
+            )
+        )
 
     def draw(self, surface):
-        pygame.draw.rect(surface, BLUE, self.rect)
+        pygame.draw.rect(surface, self.color, self.rect)
