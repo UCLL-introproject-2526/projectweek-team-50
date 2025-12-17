@@ -14,11 +14,10 @@ class Shop:
         self.overlay.fill((0, 0, 0))
         
         # Items for sale
-        # We ensure keys match attributes we add to the Player later
         self.items = [
-            {"name": "Health Refill", "cost": 50,  "id": "heal",   "desc": "Restore HP to Max"},
-            {"name": "Speed Up",      "cost": 100, "id": "speed",  "desc": "Move Delay -0.02s"},
-            {"name": "Max Health Up", "cost": 150, "id": "max_hp", "desc": "+20 Max HP"}
+            {"name": "Knight Tower", "cost": 50,  "id": "knight", "desc": "Melee tower, small range"},
+            {"name": "Archer Tower", "cost": 100, "id": "archer", "desc": "Ranged tower, medium range"},
+            {"name": "Wizard Tower", "cost": 200, "id": "wizard", "desc": "Magic tower, high range"}
         ]
         
         self.selected_index = 0
@@ -59,7 +58,8 @@ class Shop:
         item = self.items[self.selected_index]
         if player.gold >= item['cost']:
             player.gold -= item['cost']
-            self.apply_upgrade(player, item['id'])
+            player.selected_tower = item['id']
+            self.toggle()  # close shop after buying
             print(f"Bought {item['name']}")
         else:
             print("Not enough gold!")
@@ -101,9 +101,22 @@ class Shop:
             # Item Text
             text_str = f"{prefix}{item['name']}  [${item['cost']}]"
             text_surf = self.font.render(text_str, True, color)
-            screen.blit(text_surf, (self.width//2 - 150, start_y + i * 60))
+            screen.blit(text_surf, (self.width//2 - text_surf.get_width()//2, start_y + i * 60))
             
             # Description
             if i == self.selected_index:
                 desc_surf = pygame.font.SysFont('Arial', 20).render(item['desc'], True, (200, 200, 200))
-                screen.blit(desc_surf, (self.width//2 - 120, start_y + i * 60 + 30))
+                screen.blit(desc_surf, (self.width//2 - desc_surf.get_width()//2, start_y + i * 60 + 30))
+        
+        # Instructions
+        instructions = [
+            "Use UP/DOWN arrows or W/S to navigate",
+            "Press SPACE or ENTER to buy selected item",
+            "Press ESC to close shop"
+        ]
+        instr_font = pygame.font.SysFont('Arial', 18)
+        instr_y = start_y + len(self.items) * 60 + 50
+        for instr in instructions:
+            instr_surf = instr_font.render(instr, True, (255, 255, 255))
+            screen.blit(instr_surf, (self.width//2 - instr_surf.get_width()//2, instr_y))
+            instr_y += 25

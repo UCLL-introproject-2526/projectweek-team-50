@@ -8,6 +8,7 @@ class Player(Entity):
 
         self.move_delay = 0.15
         self.timer = 0.0
+        self.gold = 0
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
@@ -24,7 +25,7 @@ class Player(Entity):
 
         return dx, dy
 
-    def update(self, dt, tilemap):
+    def update(self, dt, tilemap, coin_manager, game):
         self.timer += dt
         if self.timer >= self.move_delay:
             dx, dy = self.handle_input()
@@ -33,6 +34,10 @@ class Player(Entity):
                 ny = self.tile_y + dy
                 if not tilemap.is_blocked(nx, ny):
                     self.set_tile(nx, ny)
+                    # Collect coins after moving
+                    collected = coin_manager.collect_at_tile(self.tile_x, self.tile_y)
+                    if collected:
+                        self.gold += collected
             self.timer = 0.0
 
         super().update(dt)

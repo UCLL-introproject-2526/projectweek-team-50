@@ -1,4 +1,5 @@
 import random
+import pygame
 
 from settings import TILE_SIZE
 def handle_death(self, coin_manager, tilemap):
@@ -54,6 +55,6 @@ class CoinManager:
 
 
 # in Player.update() after moving / set_tile(...)
-collected = coin_manager.collect_at_tile(self.tile_x, self.tile_y)
-if collected:
-    player_money += collected  # add TL
+# collected = coin_manager.collect_at_tile(self.tile_x, self.tile_y)
+# if collected:
+#     player_money += collected  # add TL

@@ -46,12 +46,14 @@ TILES_Y = SCREEN_HEIGHT // TILE_SIZE
 TILE_GRASS = 0
 TILE_WALL = 1
 TILE_PATH = 2
+TILE_CASTLE = 3
 
 # Tile colors
 TILE_COLORS = {
     TILE_GRASS: (40, 120, 40),
     TILE_WALL:  (80, 80, 80),
     TILE_PATH:  (150, 120, 60),
+    TILE_CASTLE: (100, 100, 100),  # Grey castle
 }
 
 # ===============================

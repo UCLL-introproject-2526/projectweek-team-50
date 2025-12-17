@@ -11,13 +11,14 @@ class Enemy:
         self.tile_y = self.path[0][1] // TILE_SIZE
 
         # Timer for movement delay
-        self.move_delay = 0.7  # seconds per tile
+        self.move_delay = 1.0 / speed  # seconds per tile
         self.timer = 0.0
 
         self.health = health
         self.max_health = health
         self.reward = reward
         self.finished = False
+        self.dead_handled = False
 
         self.color = (
             max(50, RED[0] - color_grade * 30),

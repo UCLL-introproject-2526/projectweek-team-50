@@ -1,0 +1,62 @@
+import pygame
+from entities.entity import Entity
+from entities.projectile import Projectile
+from settings import RED, GREEN, BLUE
+
+class Tower(Entity):
+    def __init__(self, tile_pos, tower_type):
+        super().__init__(tile_pos)
+        self.type = tower_type
+        if tower_type == 'knight':
+            self.range = 80  # small range
+            self.damage = 30
+            self.fire_delay = 0.8
+            self.color = RED
+        elif tower_type == 'archer':
+            self.range = 160  # medium
+            self.damage = 20
+            self.fire_delay = 0.6
+            self.color = GREEN
+        elif tower_type == 'wizard':
+            self.range = 240  # high
+            self.damage = 15
+            self.fire_delay = 0.5
+            self.color = BLUE
+        
+        self.timer = 0.0
+
+    def update(self, dt, enemies, projectiles):
+        self.timer += dt
+        if self.timer >= self.fire_delay:
+            target = self.find_target(enemies)
+            if target:
+                self.attack_target(target, projectiles)
+                self.timer = 0.0
+
+    def find_target(self, enemies):
+        best_target = None
+        min_dist = float('inf')
+        
+        for e in enemies:
+            dx = e.rect.centerx - self.rect.centerx
+            dy = e.rect.centery - self.rect.centery
+            dist_sq = dx * dx + dy * dy
+            
+            if dist_sq <= self.range * self.range:
+                if dist_sq < min_dist:
+                    min_dist = dist_sq
+                    best_target = e
+        return best_target
+
+    def attack_target(self, target, projectiles):
+        projectiles.append(
+            Projectile(
+                self.rect.centerx,
+                self.rect.centery,
+                target,
+                damage=self.damage
+            )
+        )
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, self.color, self.rect)

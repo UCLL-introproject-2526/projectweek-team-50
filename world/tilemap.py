@@ -29,11 +29,11 @@ class TileMap:
 
 
     def get_path_points(self):
-        # Find all PATH tiles
+        # Find all PATH tiles and CASTLE
         path_tiles = set()
         for y in range(TILES_Y):
             for x in range(TILES_X):
-                if self.tiles[y][x] == TILE_PATH:
+                if self.tiles[y][x] == TILE_PATH or self.tiles[y][x] == TILE_CASTLE:
                     path_tiles.add((x, y))
 
         if not path_tiles:
@@ -76,6 +76,9 @@ class TileMap:
             current = next_tiles[0]
             ordered_tiles.append(current)
             visited.add(current)
+
+        # Reverse the path so enemies come from the end towards the start
+        ordered_tiles = ordered_tiles[::-1]
 
         # Convert tiles → pixel centers
         path_points = []
