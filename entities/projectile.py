@@ -25,14 +25,28 @@ class Projectile:
         dy = self.target.rect.centery - self.y
         dist = math.hypot(dx, dy)
 
-        if dist < 5:
+        # Consider the projectile hitting the target if it's within a small
+        # distance or the projectile point lies within the target rect.
+        hit = False
+        if dist < max(5, getattr(self.target, 'radius', 8)):
+            hit = True
+        else:
+            try:
+                if self.target.rect.collidepoint(int(self.x), int(self.y)):
+                    hit = True
+            except Exception:
+                pass
+
+        if hit:
             self.target.health -= self.damage
-            # If the hit killed the enemy, immediately spawn coins
-            if self.target.health <= 0 and self.coin_manager and self.tilemap:
-                try:
-                    handle_death(self.target, self.coin_manager, self.tilemap)
-                except Exception:
-                    pass
+            # If the hit killed the enemy, mark finished and spawn coins
+            if self.target.health <= 0:
+                self.target.finished = True
+                if self.coin_manager and self.tilemap:
+                    try:
+                        handle_death(self.target, self.coin_manager, self.tilemap)
+                    except Exception:
+                        pass
             self.alive = False
             return
 
