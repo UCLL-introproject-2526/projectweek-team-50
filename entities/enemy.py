@@ -1,5 +1,4 @@
 import pygame
-import math
 from settings import TILE_SIZE, RED, GREEN, BLACK
 
 class Enemy:
@@ -7,14 +6,17 @@ class Enemy:
         self.path = path_points
         self.path_index = 0
 
-        # World position (float for smooth movement)
-        self.x, self.y = self.path[0]
+        # Tile position (integers)
+        self.tile_x = self.path[0][0] // TILE_SIZE
+        self.tile_y = self.path[0][1] // TILE_SIZE
+
+        # Timer for movement delay
+        self.move_delay = 0.7  # seconds per tile
+        self.timer = 0.0
 
         self.health = health
         self.max_health = health
-        self.speed = speed
         self.reward = reward
-
         self.finished = False
 
         self.color = (
@@ -22,54 +24,70 @@ class Enemy:
             RED[1],
             RED[2]
         )
-
         self.radius = TILE_SIZE // 3
 
-        # ✅ RECT (this fixes your crash)
+        # Rect for collisions
         size = self.radius * 2
         self.rect = pygame.Rect(
-            self.x - self.radius,
-            self.y - self.radius,
+            self.tile_x * TILE_SIZE + TILE_SIZE//2 - self.radius,
+            self.tile_y * TILE_SIZE + TILE_SIZE//2 - self.radius,
             size,
             size
         )
+
+        # Lerp positions (pixels)
+        self.lerp_x = self.rect.centerx
+        self.lerp_y = self.rect.centery
+
+        # Lerp speed factor (0 < factor <= 1)
+        self.lerp_factor = 0.4  # very fast lerp; increase for faster, decrease for smoother
 
     def update(self, dt):
         if self.finished or self.path_index >= len(self.path) - 1:
             self.finished = True
             return
 
-        target_x, target_y = self.path[self.path_index + 1]
-
-        dx = target_x - self.x
-        dy = target_y - self.y
-        dist = math.hypot(dx, dy)
-
-        if dist < 2:
+        self.timer += dt
+        if self.timer >= self.move_delay:
+            # Move to next path tile
             self.path_index += 1
-        else:
-            self.x += (dx / dist) * self.speed * dt
-            self.y += (dy / dist) * self.speed * dt
+            target_px, target_py = self.path[self.path_index]
+            self.tile_x = target_px // TILE_SIZE
+            self.tile_y = target_py // TILE_SIZE
 
-        # ✅ Update rect position every frame
-        self.rect.center = (int(self.x), int(self.y))
+            # Reset timer
+            self.timer = 0.0
+
+        # Fast lerp toward tile center
+        self._lerp_to_tile()
+
+        # Update rect
+        self.rect.center = (int(self.lerp_x), int(self.lerp_y))
 
         if self.health <= 0:
             self.finished = True
+
+    def _lerp_to_tile(self):
+        """Very fast lerp toward current tile center."""
+        target_center_x = self.tile_x * TILE_SIZE + TILE_SIZE // 2
+        target_center_y = self.tile_y * TILE_SIZE + TILE_SIZE // 2
+
+        self.lerp_x += (target_center_x - self.lerp_x) * self.lerp_factor
+        self.lerp_y += (target_center_y - self.lerp_y) * self.lerp_factor
 
     def draw(self, surface):
         pygame.draw.circle(
             surface,
             self.color,
-            (int(self.x), int(self.y)),
+            self.rect.center,
             self.radius
         )
 
         # Health bar
         bar_width = 30
         bar_height = 5
-        x = self.x - bar_width // 2
-        y = self.y - self.radius - 10
+        x = self.rect.centerx - bar_width // 2
+        y = self.rect.top - 10
 
         pygame.draw.rect(surface, BLACK, (x, y, bar_width, bar_height))
 

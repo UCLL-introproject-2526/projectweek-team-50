@@ -21,9 +21,12 @@ class TileMap:
     
 
     def is_buildable(self, x, y):
-        if x < 0 or y < 0 or y >= self.height or x >= self.width:
+        # Use TILES_X and TILES_Y instead of self.width / self.height
+        if x < 0 or y < 0 or x >= TILES_X or y >= TILES_Y:
             return False
-        return self.grid[y][x] == 0  # grass
+        # Use self.tiles instead of self.grid
+        return self.tiles[y][x] == TILE_GRASS  # grass is buildable
+
 
     def get_path_points(self):
         # Find all PATH tiles

@@ -8,7 +8,7 @@ class WaveManager:
 
         self.wave_index = 0
         self.spawn_timer = 0.0
-        self.spawn_delay = 0.8  # seconds between enemies
+        self.spawn_delay = 1.8  # seconds between enemies
 
         self.enemies_to_spawn = 0
         self.wave_active = False

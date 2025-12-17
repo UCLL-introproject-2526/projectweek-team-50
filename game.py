@@ -62,7 +62,7 @@ class Game:
 
         # Wave system
         self.wave_manager = WaveManager(self.tilemap)
-        self.wave_manager.start_wave(enemy_count=5)
+        self.wave_manager.start_wave(enemy_count=15)
 
         # Logical render surface
         self.screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
