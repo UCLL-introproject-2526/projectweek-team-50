@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from shop import Shop
 from shopkeeper import Shopkeeper
-from coins import CoinManager
+from coins import CoinManager, handle_death
 
 from entities.player import Player
 from entities.troop import Troop
@@ -81,9 +81,6 @@ class Game:
         # Player
         self.player.selected_tower = None
         self.player.gold = 100
-
-        # Coin system
-        self.coin_manager = CoinManager()
 
         # Castle
         self.castle_hp = 100
@@ -206,26 +203,17 @@ class Game:
 
         # Towers
         for tower in self.towers:
-            tower.update(dt, self.enemies, self.projectiles)
+            tower.update(dt, self.enemies, self.projectiles, self.coin_manager, self.tilemap)
 
         # Projectiles
         for projectile in self.projectiles:
             projectile.update(dt)
 
-        # Handle dead enemies (drop coins) and enemies reaching castle
+        # Handle enemies that reached the castle
         for enemy in self.enemies:
-            if enemy.finished or enemy.health <= 0:
-                if enemy.health > 0:  # reached castle
-                    self.castle_hp -= 1
-                # Drop coins at enemy's position
-                tx = enemy.tile_x
-                ty = enemy.tile_y
-                # Spawn 2-3 coins, each 5-10 TL, but adjust to reward
-                import random
-                for _ in range(random.randint(2, 3)):
-                    value = min(10, max(5, enemy.reward // 3))  # roughly based on reward
-                    self.coin_manager.add_coin_at_tile(tx, ty, value)
-                enemy.dead_handled = True
+            if enemy.finished and enemy.health > 0:
+                # enemy reached the castle
+                self.castle_hp -= 1
 
         # Cleanup
         self.projectiles = [p for p in self.projectiles if p.alive]

@@ -14,12 +14,12 @@ class Troop(Entity):
         
         self.timer = 0.0
 
-    def update(self, dt, enemies, projectiles):
+    def update(self, dt, enemies, projectiles, coin_manager=None, tilemap=None):
         self.timer += dt
         if self.timer >= self.fire_delay:
             target = self.find_target(enemies)
             if target:
-                self.attack_target(target, projectiles)
+                self.attack_target(target, projectiles, coin_manager, tilemap)
                 self.timer = 0.0
 
     def find_target(self, enemies):
@@ -38,14 +38,16 @@ class Troop(Entity):
                     best_target = e
         return best_target
 
-    def attack_target(self, target, projectiles):
+    def attack_target(self, target, projectiles, coin_manager=None, tilemap=None):
         # Default behavior: Shoot Projectile
         projectiles.append(
             Projectile(
                 self.rect.centerx,
                 self.rect.centery,
                 target,
-                damage=self.damage
+                damage=self.damage,
+                coin_manager=coin_manager,
+                tilemap=tilemap
             )
         )
 

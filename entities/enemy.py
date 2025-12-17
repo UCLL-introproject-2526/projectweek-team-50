@@ -10,8 +10,13 @@ class Enemy:
         self.tile_x = self.path[0][0] // TILE_SIZE
         self.tile_y = self.path[0][1] // TILE_SIZE
 
-        # Timer for movement delay
-        self.move_delay = 1.0 / speed  # seconds per tile
+        # Movement speed: make enemies three times faster than the base `speed`
+        # and convert tiles-per-second to seconds-per-tile
+        self.speed = speed * 3
+        if self.speed <= 0:
+            self.move_delay = 0.7
+        else:
+            self.move_delay = 1.0 / self.speed
         self.timer = 0.0
 
         self.health = health
@@ -27,8 +32,6 @@ class Enemy:
         )
         self.radius = TILE_SIZE // 3
         
-        # Track if death has been handled (for coin drops)
-        self.dead_handled = False
 
         # Rect for collisions
         size = self.radius * 2
