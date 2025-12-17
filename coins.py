@@ -1,68 +1,59 @@
-import pygame
-from pygame.math import Vector2
-
-class Coin:
-    def __init__(self, position, value=10, radius=8, color=(255, 215, 0)):
-        self.position = Vector2(position)
-        self.value = value
-        self.radius = radius
-        self.color = color
-        self.collected = False
-
-    def draw(self, screen):
-        if not self.collected:
-            pygame.draw.circle(
-                screen,
-                self.color,
-                (int(self.position.x), int(self.position.y)),
-                self.radius
-            )
-
-    def check_collision(self, collector_pos, collector_radius):
-        if self.collected:
-            return 0
-
-        if (self.position - collector_pos).length() <= self.radius + collector_radius:
-            self.collected = True
-            return self.value
-        return 0
-
-
-class CoinManager:
-    def __init__(self):
-        self.coins = []
-
-    def drop_coin(self, position, value=10):
-        self.coins.append(Coin(position, value))
-
-    def update(self, collector_pos, collector_radius):
-        total = 0
-        for coin in self.coins:
-            total += coin.check_collision(collector_pos, collector_radius)
-
-        self.coins = [c for c in self.coins if not c.collected]
-        return total
-
-    def draw(self, screen):
-        for coin in self.coins:
-            coin.draw(screen)
-
-
-class Enemy(Character):
-    def __init__(self, path):
-        super().__init__(position=path[0], health=50, radius=12)
-        self.path = path
-        self.path_index = 0
-        self.speed = 2
-
-        self.coin_reward = 10
-        self.dead_handled = False   # IMPORTANT
-
-# random coin spread from 2 - 5
-
 import random
 
-for _ in range(3):
-    offset = Vector2(random.randint(2, 5), random.randint(2, 5))
-    coin_manager.drop_coin(enemy.position + offset, 5)
+from settings import TILE_SIZE
+def handle_death(self, coin_manager, tilemap):
+    if self.dead_handled: return
+    tx = int(self.x) // TILE_SIZE
+    ty = int(self.y) // TILE_SIZE
 
+    # if not grass, search neighbors
+    if not tilemap.is_tile_grass(tx, ty):
+        found = False
+        for r in (1,2):
+            for dx in range(-r, r+1):
+                for dy in range(-r, r+1):
+                    nx, ny = tx+dx, ty+dy
+                    if tilemap.is_tile_grass(nx, ny):
+                        tx, ty = nx, ny
+                        found = True
+                        break
+                if found: break
+            if found: break
+        if not found:
+            self.dead_handled = True
+            return
+
+    # spawn 2-3 coins, each 5-10 TL
+    for _ in range(random.randint(2,3)):
+        value = random.randint(5, 10)  # Turkish lira
+        coin_manager.add_coin_at_tile(tx, ty, value)
+
+    self.dead_handled = True
+
+# CoinManager (simple tile-based)
+class CoinManager:
+    def __init__(self):
+        self.coins = {}  # {(tx, ty): value}
+    def add_coin_at_tile(self, tx, ty, value):
+        if (tx, ty) not in self.coins:
+         self.coins[(tx, ty)] = value
+    def collect_at_tile(self, tx, ty):
+        return self.coins.pop((tx, ty), 0)
+    def draw(self, surface):
+        GOLD = (255, 215, 0)
+        size = TILE_SIZE // 3
+
+        for (tx, ty), value in self.coins.items():
+            x = tx * TILE_SIZE + (TILE_SIZE - size) // 2
+            y = ty * TILE_SIZE + (TILE_SIZE - size) // 2
+            pygame.draw.rect(
+             surface,
+             GOLD,
+             (x, y, size, size)
+         )
+
+
+# in Player.update() after moving / set_tile(...)
+collected = coin_manager.collect_at_tile(self.tile_x, self.tile_y)
+if collected:
+    player_money += collected  # add TL
