@@ -74,6 +74,9 @@ class Game:
         self.enemies = []
         self.towers = []
         self.projectiles = []
+        
+        # Coin system
+        self.coin_manager = CoinManager()
 
         # Player
         self.player.selected_tower = None
@@ -226,10 +229,16 @@ class Game:
 
         # Cleanup
         self.projectiles = [p for p in self.projectiles if p.alive]
-        self.enemies = [
-            e for e in self.enemies
-            if not e.finished and e.health > 0
-        ]
+        
+        # Process dead enemies and spawn coins
+        alive_enemies = []
+        for e in self.enemies:
+            if not e.finished and e.health > 0:
+                alive_enemies.append(e)
+            else:
+                # Enemy died, drop coins
+                handle_death(e, self.coin_manager, self.tilemap)
+        self.enemies = alive_enemies
 
         # Check game over
         if self.castle_hp <= 0:
@@ -264,6 +273,9 @@ class Game:
 
         for projectile in self.projectiles:
             projectile.draw(self.screen)
+        
+        # Draw coins
+        self.coin_manager.draw(self.screen)
 
         self.coin_manager.draw(self.screen)
 
