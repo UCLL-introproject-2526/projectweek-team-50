@@ -26,6 +26,9 @@ class Enemy:
             RED[2]
         )
         self.radius = TILE_SIZE // 3
+        
+        # Track if death has been handled (for coin drops)
+        self.dead_handled = False
 
         # Rect for collisions
         size = self.radius * 2

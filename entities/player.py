@@ -1,5 +1,5 @@
 import pygame
-from settings import WHITE
+from settings import WHITE, TILES_X, TILES_Y
 from entities.entity import Entity
 
 class Player(Entity):
@@ -32,7 +32,9 @@ class Player(Entity):
             if dx or dy:
                 nx = self.tile_x + dx
                 ny = self.tile_y + dy
-                if not tilemap.is_blocked(nx, ny):
+                
+                # Check boundaries and blocked tiles
+                if 0 <= nx < TILES_X and 0 <= ny < TILES_Y and not tilemap.is_blocked(nx, ny):
                     self.set_tile(nx, ny)
                     # Collect coins after moving
                     collected = coin_manager.collect_at_tile(self.tile_x, self.tile_y)

@@ -1,35 +1,31 @@
 import random
 import pygame
-
 from settings import TILE_SIZE
-def handle_death(self, coin_manager, tilemap):
-    if self.dead_handled: return
-    tx = int(self.x) // TILE_SIZE
-    ty = int(self.y) // TILE_SIZE
 
-    # if not grass, search neighbors
-    if not tilemap.is_tile_grass(tx, ty):
-        found = False
-        for r in (1,2):
-            for dx in range(-r, r+1):
-                for dy in range(-r, r+1):
-                    nx, ny = tx+dx, ty+dy
-                    if tilemap.is_tile_grass(nx, ny):
-                        tx, ty = nx, ny
-                        found = True
-                        break
-                if found: break
-            if found: break
-        if not found:
-            self.dead_handled = True
-            return
+# Player money starts at 0
+player_money = 0
 
-    # spawn 2-3 coins, each 5-10 TL
+def handle_death(enemy, coin_manager, tilemap):
+    if enemy.dead_handled: 
+        return
+    
+    tx = enemy.tile_x
+    ty = enemy.tile_y
+
+    # spawn 2-3 coins, each 5-10 TL, spread randomly within 2-tile radius
     for _ in range(random.randint(2,3)):
         value = random.randint(5, 10)  # Turkish lira
-        coin_manager.add_coin_at_tile(tx, ty, value)
+        
+        # Random offset within 2-tile radius
+        offset_x = random.randint(-2, 2)
+        offset_y = random.randint(-2, 2)
+        
+        coin_tx = tx + offset_x
+        coin_ty = ty + offset_y
+        
+        coin_manager.add_coin_at_tile(coin_tx, coin_ty, value)
 
-    self.dead_handled = True
+    enemy.dead_handled = True
 
 # CoinManager (simple tile-based)
 class CoinManager:
@@ -52,9 +48,3 @@ class CoinManager:
              GOLD,
              (x, y, size, size)
          )
-
-
-# in Player.update() after moving / set_tile(...)
-# collected = coin_manager.collect_at_tile(self.tile_x, self.tile_y)
-# if collected:
-#     player_money += collected  # add TL
