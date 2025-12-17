@@ -8,9 +8,9 @@ class Tower(Entity):
         super().__init__(tile_pos)
         self.type = tower_type
         if tower_type == 'knight':
-            self.range = 80  # small range
-            self.damage = 30
-            self.fire_delay = 0.8
+            self.range = 60  # very short range (melee)
+            self.damage = 50  # much stronger damage
+            self.fire_delay = 0.6  # faster attack
             self.color = RED
         elif tower_type == 'archer':
             self.range = 160  # medium
@@ -24,9 +24,13 @@ class Tower(Entity):
             self.color = BLUE
         
         self.timer = 0.0
+        self.attack_timer = 0.0  # For melee animation
 
     def update(self, dt, enemies, projectiles, coin_manager=None, tilemap=None):
         self.timer += dt
+        if self.attack_timer > 0:
+            self.attack_timer -= dt
+        
         if self.timer >= self.fire_delay:
             target = self.find_target(enemies)
             if target:
@@ -49,16 +53,39 @@ class Tower(Entity):
         return best_target
 
     def attack_target(self, target, projectiles, coin_manager=None, tilemap=None):
-        projectiles.append(
-            Projectile(
-                self.rect.centerx,
-                self.rect.centery,
-                target,
-                damage=self.damage,
-                coin_manager=coin_manager,
-                tilemap=tilemap
+        if self.type == 'knight':
+            # Knight uses instant melee attack instead of projectile
+            target.health -= self.damage
+            target.killed_by_tower = True
+            self.attack_timer = 0.2  # Animation duration
+            
+            # If enemy dies, handle it
+            if target.health <= 0:
+                target.finished = True
+                if coin_manager and tilemap:
+                    try:
+                        from coins import handle_death
+                        handle_death(target, coin_manager, tilemap)
+                    except Exception:
+                        pass
+        else:
+            # Archer and Wizard use projectiles
+            projectiles.append(
+                Projectile(
+                    self.rect.centerx,
+                    self.rect.centery,
+                    target,
+                    damage=self.damage,
+                    coin_manager=coin_manager,
+                    tilemap=tilemap
+                )
             )
-        )
 
     def draw(self, surface):
-        pygame.draw.rect(surface, self.color, self.rect)
+        if self.type == 'knight' and self.attack_timer > 0:
+            # Knight attack animation: expand during attack
+            expansion = int(20 * (1 - self.attack_timer / 0.2))
+            expanded_rect = self.rect.inflate(expansion * 2, expansion * 2)
+            pygame.draw.rect(surface, self.color, expanded_rect)
+        else:
+            pygame.draw.rect(surface, self.color, self.rect)

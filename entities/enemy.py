@@ -2,9 +2,10 @@ import pygame
 from settings import TILE_SIZE, RED, GREEN, BLACK
 
 class Enemy:
-    def __init__(self, path_points, health, speed, reward, color_grade=0):
+    def __init__(self, path_points, health, speed, reward, color_grade=0, enemy_type="standard"):
         self.path = path_points
         self.path_index = 0
+        self.enemy_type = enemy_type  # "standard", "fast_weak", or "slow_strong"
 
         # Tile position (integers)
         self.tile_x = self.path[0][0] // TILE_SIZE
@@ -24,13 +25,25 @@ class Enemy:
         self.reward = reward
         self.finished = False
         self.dead_handled = False
+        self.killed_by_tower = False  # Track if killed by tower (for coin drops)
 
-        self.color = (
-            max(50, RED[0] - color_grade * 30),
-            RED[1],
-            RED[2]
-        )
-        self.radius = TILE_SIZE // 3
+        # Set color and size based on enemy type
+        if enemy_type == "fast_weak":
+            # Fast weak enemies: yellow/lime color (small circles)
+            self.color = (200, 255, 0)  # Yellow-green
+            self.radius = TILE_SIZE // 5  # Smaller
+        elif enemy_type == "slow_strong":
+            # Slow strong enemies: purple/magenta color (larger squares)
+            self.color = (200, 50, 200)  # Purple
+            self.radius = TILE_SIZE // 2  # Much larger
+        else:
+            # Standard enemies: red
+            self.color = (
+                max(50, RED[0] - color_grade * 30),
+                RED[1],
+                RED[2]
+            )
+            self.radius = TILE_SIZE // 3
         
 
         # Rect for collisions
@@ -83,12 +96,36 @@ class Enemy:
         self.lerp_y += (target_center_y - self.lerp_y) * self.lerp_factor
 
     def draw(self, surface):
-        pygame.draw.circle(
-            surface,
-            self.color,
-            self.rect.center,
-            self.radius
-        )
+        if self.enemy_type == "fast_weak":
+            # Draw as small circle (yellow-green)
+            pygame.draw.circle(
+                surface,
+                self.color,
+                self.rect.center,
+                self.radius
+            )
+        elif self.enemy_type == "slow_strong":
+            # Draw as large square (purple)
+            size = self.radius * 2
+            rect = pygame.Rect(
+                self.rect.centerx - self.radius,
+                self.rect.centery - self.radius,
+                size,
+                size
+            )
+            pygame.draw.rect(
+                surface,
+                self.color,
+                rect
+            )
+        else:
+            # Standard: red circle
+            pygame.draw.circle(
+                surface,
+                self.color,
+                self.rect.center,
+                self.radius
+            )
 
         # Health bar
         bar_width = 30

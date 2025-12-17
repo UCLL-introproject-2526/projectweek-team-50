@@ -39,6 +39,7 @@ class Projectile:
 
         if hit:
             self.target.health -= self.damage
+            self.target.killed_by_tower = True  # Mark as killed by tower for coin drops
             # If the hit killed the enemy, mark finished and spawn coins
             if self.target.health <= 0:
                 self.target.finished = True

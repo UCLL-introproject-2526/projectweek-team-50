@@ -6,6 +6,12 @@ def handle_death(enemy, coin_manager, tilemap):
     if enemy.dead_handled: 
         return
     
+    # Only drop coins if the enemy was actually killed (health <= 0)
+    # Enemies that crash the castle will have health > 0 and won't drop coins
+    if enemy.health > 0:
+        enemy.dead_handled = True
+        return
+    
     tx = enemy.tile_x
     ty = enemy.tile_y
 

@@ -65,6 +65,9 @@ class Game:
 
         # Font for UI
         self.font = pygame.font.SysFont(None, 24)
+        
+        # Font for announcements
+        self.announcement_font = pygame.font.SysFont(None, 60)
 
         # World
         self.tilemap = TileMap(level)
@@ -91,7 +94,7 @@ class Game:
         self.wave_manager = WaveManager(self.tilemap)
         self.current_wave = 0
         self.max_waves = 5
-        self.wave_manager.start_wave(self.current_wave)
+        self.wave_manager.start_wave(self.current_wave + 1)
 
         # Game state
         self.game_over = False
@@ -170,6 +173,11 @@ class Game:
             self.shop.handle_input(self.player)
             return  # pause game logic
 
+        # Pause game during wave announcements
+        if self.wave_manager.show_announcement:
+            self.wave_manager.update(dt, self.enemies)
+            return  # Don't process other game logic during announcement
+
         self.player.update(dt, self.tilemap, self.coin_manager, self)
 
         # Tower placement
@@ -184,22 +192,14 @@ class Game:
 
         # Enemies
         self.wave_manager.update(dt, self.enemies)
-
-        # Start next wave if current ended
-        if not self.wave_manager.wave_active and self.wave_manager.current_wave < self.wave_manager.max_waves:
-            self.wave_manager.start_wave(self.wave_manager.current_wave + 1)
+        
+        # Check if wave is complete (all enemies dead/reached castle) and start next
+        if self.wave_manager.check_wave_complete(self.enemies):
+            if self.wave_manager.current_wave < self.wave_manager.max_waves:
+                self.wave_manager.start_wave(self.wave_manager.current_wave + 1)
+        
         for enemy in self.enemies:
             enemy.update(dt)
-
-        # Check game over
-        if self.castle_hp <= 0:
-            self.game_over = True
-
-        # Wave progression
-        if not self.wave_manager.wave_active and not self.game_over:
-            self.current_wave += 1
-            if self.current_wave < self.max_waves:
-                self.wave_manager.start_wave(self.current_wave)
 
         # Towers
         for tower in self.towers:
@@ -292,6 +292,20 @@ class Game:
 
         if self.shop.active:
             self.shop.draw(self.screen, self.player)
+
+        # Draw wave announcements
+        if self.wave_manager.show_announcement:
+            # Semi-transparent overlay
+            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            overlay.set_alpha(150)
+            overlay.fill((0, 0, 0))
+            self.screen.blit(overlay, (0, 0))
+            
+            # Announcement text
+            announcement_font = pygame.font.Font(None, 72)
+            announcement_text = announcement_font.render(self.wave_manager.announcement_text, True, (255, 255, 0))
+            text_rect = announcement_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            self.screen.blit(announcement_text, text_rect)
 
         # ===== PROPER SCALING =====
         window_w, window_h = self.window.get_size()
