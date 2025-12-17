@@ -17,7 +17,8 @@ class Shop:
         self.items = [
             {"name": "Knight Tower", "cost": 50,  "id": "knight", "desc": "Melee tower, small range"},
             {"name": "Archer Tower", "cost": 100, "id": "archer", "desc": "Ranged tower, medium range"},
-            {"name": "Wizard Tower", "cost": 200, "id": "wizard", "desc": "Magic tower, high range"}
+            {"name": "Wizard Tower", "cost": 200, "id": "wizard", "desc": "Magic tower, high range"},
+            {"name": "Musketeer Tower", "cost": 250, "id": "musketeer", "desc": "Longest range, lower damage"}
         ]
         
         self.selected_index = 0
@@ -57,10 +58,13 @@ class Shop:
     def buy_item(self, player):
         item = self.items[self.selected_index]
         if player.gold >= item['cost']:
-            player.gold -= item['cost']
-            player.selected_tower = item['id']
-            self.toggle()  # close shop after buying
-            print(f"Bought {item['name']}")
+            # Try to add to inventory
+            if player.inventory.add_item(item['id']):
+                player.gold -= item['cost']
+                self.toggle()  # close shop after buying
+                print(f"Bought {item['name']}")
+            else:
+                print("Inventory full!")
         else:
             print("Not enough gold!")
 

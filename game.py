@@ -82,7 +82,6 @@ class Game:
         self.coin_manager = CoinManager()
 
         # Player
-        self.player.selected_tower = None
         self.player.gold = 100
 
         # Castle
@@ -98,6 +97,7 @@ class Game:
 
         # Game state
         self.game_over = False
+        self.placement_cooldown = 0.0
 
         # Shop system
         self.shop = Shop(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -160,6 +160,12 @@ class Game:
                         self.shop.toggle()
                     elif self.shop.active:
                         self.shop.toggle()
+                
+                # Inventory slot selection (1-5)
+                if not self.shop.active:
+                    if pygame.K_1 <= event.key <= pygame.K_5:
+                        slot_num = event.key - pygame.K_1 + 1
+                        self.player.inventory.select_slot(slot_num)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pass  # removed troop placement
@@ -179,16 +185,26 @@ class Game:
             return  # Don't process other game logic during announcement
 
         self.player.update(dt, self.tilemap, self.coin_manager, self)
+        
+        # Update placement cooldown
+        if self.placement_cooldown > 0:
+            self.placement_cooldown -= dt
 
         # Tower placement
-        if not self.shop.active:
+        if not self.shop.active and self.placement_cooldown <= 0:
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_p] and self.player.selected_tower:
-                tx, ty = self.player.tile_x, self.player.tile_y
-                if not self.tilemap.is_blocked(tx, ty) and not self.tilemap.is_path(tx, ty):
-                    from entities.tower import Tower
-                    self.towers.append(Tower((tx, ty), self.player.selected_tower))
-                    self.player.selected_tower = None
+            if keys[pygame.K_p]:
+                selected_tower = self.player.inventory.get_selected_tower()
+                if selected_tower:
+                    tx, ty = self.player.tile_x, self.player.tile_y
+                    if not self.tilemap.is_blocked(tx, ty) and not self.tilemap.is_path(tx, ty):
+                        from entities.tower import Tower
+                        self.towers.append(Tower((tx, ty), selected_tower))
+                        self.player.inventory.remove_item(selected_tower)
+                        # If quantity reaches 0, deselect
+                        if self.player.inventory.get_selected_tower() is None:
+                            self.player.inventory.selected_slot = None
+                        self.placement_cooldown = 0.2  # 200ms cooldown
 
         # Enemies
         self.wave_manager.update(dt, self.enemies)
@@ -289,6 +305,9 @@ class Game:
         if self.game_over:
             over_text = self.font.render("GAME OVER", True, RED)
             self.screen.blit(over_text, (SCREEN_WIDTH // 2 - over_text.get_width() // 2, SCREEN_HEIGHT // 2))
+
+        # Draw inventory bar at bottom
+        self.player.inventory.draw(self.screen)
 
         if self.shop.active:
             self.shop.draw(self.screen, self.player)

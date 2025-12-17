@@ -1,6 +1,7 @@
 import pygame
 from settings import WHITE, TILES_X, TILES_Y
 from entities.entity import Entity
+from inventory import Inventory
 
 class Player(Entity):
     def __init__(self, tile_pos):
@@ -9,6 +10,8 @@ class Player(Entity):
         self.move_delay = 0.15
         self.timer = 0.0
         self.gold = 0
+        self.inventory = Inventory()
+        self.selected_tower = None  # Currently selected tower for placement
 
     def handle_input(self):
         keys = pygame.key.get_pressed()

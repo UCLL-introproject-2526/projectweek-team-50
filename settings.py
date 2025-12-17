@@ -95,4 +95,11 @@ TROOP_DATA = {
         "delay": 3.0,
         "color": (20, 20, 20),
     },
+    "musketeer": {
+        "cost": 250,
+        "range": 280,
+        "damage": 12,
+        "delay": 0.7,
+        "color": (218, 165, 32),
+    },
 }

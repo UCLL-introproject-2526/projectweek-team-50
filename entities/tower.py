@@ -22,6 +22,11 @@ class Tower(Entity):
             self.damage = 15
             self.fire_delay = 0.5
             self.color = BLUE
+        elif tower_type == 'musketeer':
+            self.range = 280  # longest range
+            self.damage = 12  # less than wizard
+            self.fire_delay = 0.7
+            self.color = (218, 165, 32)  # goldenrod
         
         self.timer = 0.0
         self.attack_timer = 0.0  # For melee animation
