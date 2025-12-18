@@ -161,11 +161,13 @@ class Game:
 
         # Shop system
         self.shop = Shop(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.shopkeeper = Shopkeeper(tile_pos=(12, 20), tile_size=TILE_SIZE)
+        shop_tile = self.tilemap.get_shop_tile() or (12, 20)
+        self.shopkeeper = Shopkeeper(tile_pos=shop_tile, tile_size=TILE_SIZE)
         
         # Casino system
         self.casino = Casino(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.casino_keeper = CasinoKeeper(tile_pos=(14, 20), tile_size=TILE_SIZE)
+        casino_tile = self.tilemap.get_casino_tile() or (14, 20)
+        self.casino_keeper = CasinoKeeper(tile_pos=casino_tile, tile_size=TILE_SIZE)
         
         # Startup message - will be activated after first wave announcement
         self.startup_message_timer = 0.0

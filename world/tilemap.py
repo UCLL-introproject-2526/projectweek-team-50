@@ -246,6 +246,19 @@ class TileMap:
                     return (x, y)
         return None
 
+    def _find_first_tile(self, tile_id: int):
+        for y in range(TILES_Y):
+            for x in range(TILES_X):
+                if self.tiles[y][x] == tile_id:
+                    return (x, y)
+        return None
+
+    def get_shop_tile(self):
+        return self._find_first_tile(TILE_SHOP)
+
+    def get_casino_tile(self):
+        return self._find_first_tile(TILE_CASINO)
+
     def get_finish_tile(self):
         for y in range(TILES_Y):
             for x in range(TILES_X):
