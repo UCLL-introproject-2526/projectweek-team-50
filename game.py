@@ -2,6 +2,8 @@ import pygame
 from settings import *
 from shop import Shop
 from shopkeeper import Shopkeeper
+from casino import Casino
+from casino_keeper import CasinoKeeper
 from coins import CoinManager, handle_death
 
 from entities.player import Player
@@ -88,6 +90,8 @@ class Game:
         self.castle_hp = 100
         self.castle_max_hp = 100
         self.game_over = False
+        self.game_won = False
+        self.game_over_timer = 0.0  # For fade and animation effects
 
         # Wave system
         self.wave_manager = WaveManager(self.tilemap)
@@ -97,11 +101,21 @@ class Game:
 
         # Game state
         self.game_over = False
+        
+        # Tower placement cooldown
         self.placement_cooldown = 0.0
 
         # Shop system
         self.shop = Shop(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.shopkeeper = Shopkeeper(tile_pos=(12, 20), tile_size=TILE_SIZE)
+        
+        # Casino system
+        self.casino = Casino(SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.casino_keeper = CasinoKeeper(tile_pos=(14, 20), tile_size=TILE_SIZE)
+        
+        # Startup message
+        self.startup_message_timer = 5.0
+        self.startup_message_alpha = 255
 
     # -----------------------------
     # Utility
@@ -158,11 +172,15 @@ class Game:
                 if event.key == pygame.K_e:
                     if self.shopkeeper.is_player_close(self.player):
                         self.shop.toggle()
+                    elif self.casino_keeper.is_player_close(self.player):
+                        self.casino.toggle()
                     elif self.shop.active:
                         self.shop.toggle()
+                    elif self.casino.active:
+                        self.casino.toggle()
                 
-                # Inventory slot selection (1-5)
-                if not self.shop.active:
+                # Inventory slot selection (1-5) - only if shop/casino not active
+                if not self.shop.active and not self.casino.active:
                     if pygame.K_1 <= event.key <= pygame.K_5:
                         slot_num = event.key - pygame.K_1 + 1
                         self.player.inventory.select_slot(slot_num)
@@ -175,17 +193,31 @@ class Game:
     # Update
     # -----------------------------
     def update(self, dt):
+        # Update startup message timer
+        if self.startup_message_timer > 0:
+            self.startup_message_timer -= dt
+            # Fade out in the last 1 second
+            if self.startup_message_timer < 1.0:
+                self.startup_message_alpha = int(255 * self.startup_message_timer)
+            else:
+                self.startup_message_alpha = 255
+        
         if self.shop.active:
             self.shop.handle_input(self.player)
-            return  # pause game logic
+            return
+        
+        if self.casino.active:
+            self.casino.handle_input(self.player)
+            self.casino.update(dt, self.player)
+            return
 
         # Pause game during wave announcements
         if self.wave_manager.show_announcement:
             self.wave_manager.update(dt, self.enemies)
-            return  # Don't process other game logic during announcement
+            return
 
         self.player.update(dt, self.tilemap, self.coin_manager, self)
-        
+
         # Update placement cooldown
         if self.placement_cooldown > 0:
             self.placement_cooldown -= dt
@@ -201,10 +233,10 @@ class Game:
                         from entities.tower import Tower
                         self.towers.append(Tower((tx, ty), selected_tower))
                         self.player.inventory.remove_item(selected_tower)
-                        # If quantity reaches 0, deselect
+                        self.placement_cooldown = 0.2  # 200ms cooldown between placements
+                        # Only deselect if the selected slot is now empty
                         if self.player.inventory.get_selected_tower() is None:
                             self.player.inventory.selected_slot = None
-                        self.placement_cooldown = 0.2  # 200ms cooldown
 
         # Enemies
         self.wave_manager.update(dt, self.enemies)
@@ -213,6 +245,10 @@ class Game:
         if self.wave_manager.check_wave_complete(self.enemies):
             if self.wave_manager.current_wave < self.wave_manager.max_waves:
                 self.wave_manager.start_wave(self.wave_manager.current_wave + 1)
+            else:
+                # All waves completed - victory!
+                self.game_won = True
+                self.game_over_timer = 0.0
         
         for enemy in self.enemies:
             enemy.update(dt)
@@ -229,7 +265,11 @@ class Game:
         for enemy in self.enemies:
             if enemy.finished and enemy.health > 0:
                 # enemy reached the castle
-                self.castle_hp -= 1
+                # Boss enemies instantly lose the game
+                if enemy.enemy_type == "boss":
+                    self.game_over = True
+                else:
+                    self.castle_hp -= 1
 
         # Cleanup
         self.projectiles = [p for p in self.projectiles if p.alive]
@@ -247,6 +287,7 @@ class Game:
         # Check game over
         if self.castle_hp <= 0:
             self.game_over = True
+            self.game_over_timer = 0.0
 
     # -----------------------------
     # Draw
@@ -274,6 +315,32 @@ class Game:
 
         for enemy in self.enemies:
             enemy.draw(self.screen)
+            
+            # Draw health indicator above boss enemies
+            if enemy.enemy_type == "boss":
+                # Full health bar for boss
+                bar_width = 60
+                bar_height = 8
+                bar_x = enemy.rect.centerx - bar_width // 2
+                bar_y = enemy.rect.top - 20
+                
+                # Background bar
+                pygame.draw.rect(self.screen, BLACK, (bar_x, bar_y, bar_width, bar_height))
+                
+                # Health bar
+                if enemy.max_health > 0:
+                    health_ratio = max(0, enemy.health / enemy.max_health)
+                    health_color = (0, 255, 0) if health_ratio > 0.5 else (255, 255, 0) if health_ratio > 0.2 else (255, 0, 0)
+                    pygame.draw.rect(self.screen, health_color, (bar_x, bar_y, bar_width * health_ratio, bar_height))
+                
+                # Border
+                pygame.draw.rect(self.screen, WHITE, (bar_x, bar_y, bar_width, bar_height), 2)
+            
+            # Draw warning indicator for slow enemies
+            if enemy.enemy_type == "slow_strong":
+                # Small warning icon
+                pygame.draw.circle(self.screen, (200, 50, 200), (enemy.rect.centerx + 15, enemy.rect.centery - 15), 5)
+                pygame.draw.circle(self.screen, (255, 255, 255), (enemy.rect.centerx + 15, enemy.rect.centery - 15), 5, 1)
 
         for projectile in self.projectiles:
             projectile.draw(self.screen)
@@ -284,6 +351,7 @@ class Game:
         self.coin_manager.draw(self.screen)
 
         self.shopkeeper.draw(self.screen, self.player)
+        self.casino_keeper.draw(self.screen, self.player)
 
         # Draw money
         money_text = self.font.render(f"Money: {self.player.gold} TL", True, WHITE)
@@ -311,6 +379,9 @@ class Game:
 
         if self.shop.active:
             self.shop.draw(self.screen, self.player)
+        
+        if self.casino.active:
+            self.casino.draw(self.screen, self.player)
 
         # Draw wave announcements
         if self.wave_manager.show_announcement:
@@ -320,11 +391,87 @@ class Game:
             overlay.fill((0, 0, 0))
             self.screen.blit(overlay, (0, 0))
             
-            # Announcement text
+            # Announcement text with countdown
             announcement_font = pygame.font.Font(None, 72)
+            small_font = pygame.font.Font(None, 48)
+            
             announcement_text = announcement_font.render(self.wave_manager.announcement_text, True, (255, 255, 0))
-            text_rect = announcement_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            text_rect = announcement_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 60))
             self.screen.blit(announcement_text, text_rect)
+            
+            # Show countdown numbers with colors
+            remaining_time = max(0, self.wave_manager.announcement_duration - self.wave_manager.announcement_timer)
+            countdown = int(remaining_time) + 1
+            
+            if countdown > 0 and countdown <= 3:
+                colors = {3: (255, 0, 0), 2: (255, 128, 0), 1: (0, 255, 0)}
+                countdown_color = colors.get(countdown, (255, 255, 0))
+                countdown_text = small_font.render(str(countdown), True, countdown_color)
+                countdown_rect = countdown_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60))
+                self.screen.blit(countdown_text, countdown_rect)
+
+        # Draw startup message
+        if self.startup_message_timer > 0:
+            # Create overlay
+            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            overlay.set_alpha(min(150, self.startup_message_alpha))
+            overlay.fill((0, 0, 0))
+            self.screen.blit(overlay, (0, 0))
+            
+            # Startup message with animation
+            startup_font = pygame.font.Font(None, 42)
+            startup_text = "THE GAME HAS STARTED : THE ENEMIES ARE ADVANCING TOWARDS YOUR CASTLE,"
+            startup_text2 = "USE WASD TO NAVIGATE TO THE SHOP TO PROTECT YOUR KINGDOM!"
+            
+            # Create text surfaces with alpha
+            text_surface1 = startup_font.render(startup_text, True, (255, 255, 100))
+            text_surface1.set_alpha(self.startup_message_alpha)
+            text_surface2 = startup_font.render(startup_text2, True, (255, 255, 100))
+            text_surface2.set_alpha(self.startup_message_alpha)
+            
+            # Center the text
+            text_rect1 = text_surface1.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30))
+            text_rect2 = text_surface2.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
+            
+            self.screen.blit(text_surface1, text_rect1)
+            self.screen.blit(text_surface2, text_rect2)
+
+        # Draw game over or victory screen
+        if self.game_over or self.game_won:
+            self.game_over_timer += 1.0 / 60.0  # Approximate dt
+            
+            # Fade background to black - gradually increases
+            fade_alpha = min(200, int((self.game_over_timer / 3.0) * 200))  # Fade over 3 seconds
+            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            overlay.set_alpha(fade_alpha)
+            overlay.fill((0, 0, 0))
+            self.screen.blit(overlay, (0, 0))
+            
+            # Create slamming animation - scale and bounce
+            time_offset = self.game_over_timer * 2  # Speed up the animation
+            slam_scale = 1.0 + min(0.3, max(0, 1.0 - time_offset) * 0.3)  # Slam effect
+            
+            if self.game_over:
+                # Game over text - red with slamming animation
+                base_font_size = int(100 * slam_scale)
+                game_over_font = pygame.font.Font(None, base_font_size)
+                game_over_text = game_over_font.render("YOU LOSE!!!!!!!!", True, (255, 0, 0))
+                game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
+                self.screen.blit(game_over_text, game_over_rect)
+                
+                # Skill issue text - slightly smaller and lower
+                skill_font_size = int(70 * slam_scale)
+                skill_font = pygame.font.Font(None, skill_font_size)
+                skill_text = skill_font.render("SKILL ISSUE!!!!!!!!!", True, (255, 0, 0))
+                skill_rect = skill_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
+                self.screen.blit(skill_text, skill_rect)
+            else:
+                # Victory text - green with slamming animation
+                base_font_size = int(100 * slam_scale)
+                victory_font = pygame.font.Font(None, base_font_size)
+                victory_text = victory_font.render("VICTORY!!!!", True, (0, 255, 0))
+                victory_rect = victory_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+                self.screen.blit(victory_text, victory_rect)
 
         # ===== PROPER SCALING =====
         window_w, window_h = self.window.get_size()
@@ -354,8 +501,16 @@ class Game:
     # Main Loop
     # -----------------------------
     def run(self):
-        while self.running and not self.game_over:
+        while self.running:
             dt = self.clock.tick(FPS) / 1000
             self.handle_events()
-            self.update(dt)
+            
+            # Only update game logic if not game over/won
+            if not self.game_over and not self.game_won:
+                self.update(dt)
+            
             self.draw()
+            
+            # Exit after 5 seconds of game over/victory animation
+            if (self.game_over or self.game_won) and self.game_over_timer > 5.0:
+                self.running = False

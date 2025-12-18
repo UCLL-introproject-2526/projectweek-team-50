@@ -32,7 +32,8 @@ class WaveManager:
         else:
             enemy_count = 12 + self.wave_index * 5  # Waves 2-5: 17, 22, 27, 32
         
-        self.enemies_to_spawn = enemy_count
+        # Add 1 for the boss at the end
+        self.enemies_to_spawn = enemy_count + 1
         self.spawn_timer = 0.0
         self.spawning = True
         self.wave_finished = False
@@ -77,12 +78,47 @@ class WaveManager:
         return self.show_announcement or self.spawning
 
     def spawn_enemy(self, enemies):
-        if self.current_wave == 1:
+        # Check if this is the last enemy to spawn (the boss)
+        is_boss = (self.enemies_to_spawn == 1)
+        
+        if is_boss:
+            # Spawn boss enemy
+            # Boss gets progressively stronger with each wave
+            wave_num = self.current_wave
+            
+            # Base stats for boss
+            health = 500 + (wave_num - 1) * 300  # 500, 800, 1100, 1400, 1700
+            reward = 100 + (wave_num - 1) * 50  # 100, 150, 200, 250, 300
+            speed = 0.5  # Base speed
+            
+            # Last 2 waves (waves 4 and 5) have faster bosses
+            if wave_num >= 4:
+                speed = 1.2 + (wave_num - 4) * 0.3  # 1.2, 1.5
+            
+            enemies.append(
+                Enemy(
+                    path_points=self.path_points,
+                    health=health,
+                    speed=speed,
+                    reward=reward,
+                    enemy_type="boss"
+                )
+            )
+        elif self.current_wave == 1:
             # Wave 1: Standard enemies
             health = 100
             speed = 1.0
             reward = 10
             enemy_type = "standard"
+            enemies.append(
+                Enemy(
+                    path_points=self.path_points,
+                    health=health,
+                    speed=speed,
+                    reward=reward,
+                    enemy_type=enemy_type
+                )
+            )
         else:
             # Waves 2-5: Mix of fast weak and slow strong enemies
             enemy_index = (len(enemies) - (self.enemies_to_spawn - 1)) % 3
@@ -99,13 +135,13 @@ class WaveManager:
                 speed = 0.6 + self.wave_index * 0.1  # 0.7,0.8,0.9,1.0 (slower)
                 reward = 20
                 enemy_type = "slow_strong"
-        
-        enemies.append(
-            Enemy(
-                path_points=self.path_points,
-                health=health,
-                speed=speed,
-                reward=reward,
-                enemy_type=enemy_type
+            
+            enemies.append(
+                Enemy(
+                    path_points=self.path_points,
+                    health=health,
+                    speed=speed,
+                    reward=reward,
+                    enemy_type=enemy_type
+                )
             )
-        )

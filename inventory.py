@@ -8,86 +8,100 @@ class Inventory:
     MAX_QUANTITY = 3
     
     def __init__(self):
-        self.items = {}  # {tower_type: quantity}
-        self.selected_slot = None  # Currently selected tower type (1-5 or None)
+        self.slots = [None] * self.MAX_SLOTS  # Fixed 5 slots, each can hold a tower_type
+        self.quantities = {}  # {tower_type: quantity}
+        self.selected_slot = None  # Currently selected slot index (0-4) or None
         self.font = pygame.font.SysFont('Arial', 20)
         self.small_font = pygame.font.SysFont('Arial', 16)
         
     def add_item(self, tower_type):
         """Add a tower to inventory, returns True if successful"""
-        if len(self.items) >= self.MAX_SLOTS and tower_type not in self.items:
-            return False  # Inventory full
+        # If tower already exists, increment quantity
+        for i, slot_tower in enumerate(self.slots):
+            if slot_tower == tower_type:
+                if self.quantities[tower_type] < self.MAX_QUANTITY:
+                    self.quantities[tower_type] += 1
+                    return True
+                return False
         
-        if tower_type not in self.items:
-            self.items[tower_type] = 0
+        # Tower doesn't exist, find an empty slot
+        for i, slot_tower in enumerate(self.slots):
+            if slot_tower is None:
+                self.slots[i] = tower_type
+                self.quantities[tower_type] = 1
+                return True
         
-        if self.items[tower_type] < self.MAX_QUANTITY:
-            self.items[tower_type] += 1
-            return True
-        return False
+        return False  # All slots full
     
     def remove_item(self, tower_type):
         """Remove one tower from inventory"""
-        if tower_type in self.items:
-            self.items[tower_type] -= 1
-            if self.items[tower_type] <= 0:
-                del self.items[tower_type]
-                if self.selected_slot == tower_type:
-                    self.selected_slot = None
-            return True
-        return False
+        if tower_type not in self.quantities:
+            return False
+        
+        self.quantities[tower_type] -= 1
+        if self.quantities[tower_type] <= 0:
+            # Remove from quantities and slots only when quantity reaches 0
+            del self.quantities[tower_type]
+            for i, slot_tower in enumerate(self.slots):
+                if slot_tower == tower_type:
+                    self.slots[i] = None
+                    # If this was the selected slot, clear selection
+                    if self.selected_slot == i:
+                        self.selected_slot = None
+                    break
+        return True
+        return True
     
     def select_slot(self, slot_number):
         """Select a slot (1-5)"""
         if slot_number < 1 or slot_number > self.MAX_SLOTS:
             return None
         
-        # Get the slot_number-th tower type
-        tower_types = list(self.items.keys())
-        if slot_number - 1 < len(tower_types):
-            self.selected_slot = tower_types[slot_number - 1]
-            return self.selected_slot
+        slot_index = slot_number - 1
+        if self.slots[slot_index] is not None:
+            self.selected_slot = slot_index
+            return self.slots[slot_index]
         return None
     
     def get_selected_tower(self):
         """Get currently selected tower type"""
-        return self.selected_slot
+        if self.selected_slot is not None:
+            return self.slots[self.selected_slot]
+        return None
     
     def is_empty(self):
         """Check if inventory is empty"""
-        return len(self.items) == 0
+        return all(slot is None for slot in self.slots)
     
     def draw(self, surface):
         """Draw inventory bar at the bottom of screen"""
         # Inventory bar background
-        bar_height = 75
-        bar_y = surface.get_height() - bar_height - 80
+        bar_height = 55
+        bar_y = int(surface.get_height() * 3.2 / 4)
         inventory_bg = pygame.Rect(0, bar_y, surface.get_width(), bar_height)
         pygame.draw.rect(surface, UI_BG_COLOR, inventory_bg)
         pygame.draw.line(surface, (100, 100, 100), (0, bar_y), (surface.get_width(), bar_y), 2)
         
         # Draw title
         title_text = self.font.render("INVENTORY", True, TEXT_COLOR)
-        surface.blit(title_text, (10, bar_y + 5))
+        surface.blit(title_text, (10, bar_y + 3))
         
         # Draw inventory slots - CENTERED
-        slot_width = 110
-        slot_height = 55
+        slot_width = 85
+        slot_height = 40
         total_slots_width = self.MAX_SLOTS * slot_width + (self.MAX_SLOTS - 1) * 5
         slot_x_start = (surface.get_width() - total_slots_width) // 2
-        slot_y = bar_y + 15
+        slot_y = bar_y + 8
         
-        tower_types = list(self.items.keys())
-        
-        for slot_num in range(1, self.MAX_SLOTS + 1):
-            slot_x = slot_x_start + (slot_num - 1) * (slot_width + 5)
+        for slot_num in range(self.MAX_SLOTS):
+            slot_x = slot_x_start + slot_num * (slot_width + 5)
+            tower_type = self.slots[slot_num]
             
-            if slot_num - 1 < len(tower_types):
-                tower_type = tower_types[slot_num - 1]
-                quantity = self.items[tower_type]
+            if tower_type is not None:
+                quantity = self.quantities.get(tower_type, 0)
                 
                 # Highlight selected slot
-                if self.selected_slot == tower_type:
+                if self.selected_slot == slot_num:
                     slot_color = BUTTON_SELECTED_COLOR
                 else:
                     slot_color = BUTTON_COLOR
@@ -115,7 +129,7 @@ class Inventory:
                 surface.blit(qty_text, (slot_x + 20, slot_y + 20))
                 
                 # Draw key hint
-                key_text = self.small_font.render(f"[{slot_num}]", True, (150, 150, 150))
+                key_text = self.small_font.render(f"[{slot_num + 1}]", True, (150, 150, 150))
                 surface.blit(key_text, (slot_x + slot_width - 28, slot_y + slot_height - 16))
             else:
                 # Empty slot
@@ -124,10 +138,10 @@ class Inventory:
                 pygame.draw.rect(surface, (80, 80, 80), slot_rect, 2)
                 
                 # Draw key hint
-                key_text = self.small_font.render(f"[{slot_num}]", True, (80, 80, 80))
+                key_text = self.small_font.render(f"[{slot_num + 1}]", True, (80, 80, 80))
                 surface.blit(key_text, (slot_x + slot_width - 28, slot_y + slot_height - 16))
         
         # Draw place hint
-        if self.selected_slot:
+        if self.selected_slot is not None:
             place_text = self.small_font.render("Press P to place", True, (100, 255, 100))
             surface.blit(place_text, (surface.get_width() - 180, bar_y + 52))

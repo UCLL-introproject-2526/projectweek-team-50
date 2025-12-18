@@ -9,7 +9,7 @@ class Jester(Troop):
 class Knight(Troop):
     def __init__(self, tile_pos):
         # Melee unit: Short range, tanky?
-        super().__init__(tile_pos, range_radius=50, fire_delay=1.0)
+        super().__init__(tile_pos, range_radius=50, fire_delay=1.5)
         self.name = "Knight"
 
 class Archer(Troop):
@@ -20,8 +20,8 @@ class Archer(Troop):
 
 class Wizard(Troop):
     def __init__(self, tile_pos):
-        # Long range or AOE?
-        super().__init__(tile_pos, range_radius=180, fire_delay=1.5)
+        # Long range or AOE with slow effect?
+        super().__init__(tile_pos, range_radius=180, fire_delay=1.5, slow_duration=0.5)
         self.name = "Wizard"
 
 class Cannon(Troop):

@@ -4,13 +4,14 @@ from entities.projectile import Projectile
 from settings import BLUE
 
 class Troop(Entity):
-    def __init__(self, tile_pos, range_radius=160, fire_delay=0.6, damage=20, color=BLUE):
+    def __init__(self, tile_pos, range_radius=160, fire_delay=0.6, damage=20, color=BLUE, slow_duration=0):
         super().__init__(tile_pos)
 
         self.range = range_radius
         self.fire_delay = fire_delay
         self.damage = damage
         self.color = color
+        self.slow_duration = slow_duration  # Duration to slow enemies (0 = no slow)
         
         self.timer = 0.0
 
@@ -46,6 +47,7 @@ class Troop(Entity):
                 self.rect.centery,
                 target,
                 damage=self.damage,
+                slow_duration=self.slow_duration,
                 coin_manager=coin_manager,
                 tilemap=tilemap
             )

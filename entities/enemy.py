@@ -5,7 +5,7 @@ class Enemy:
     def __init__(self, path_points, health, speed, reward, color_grade=0, enemy_type="standard"):
         self.path = path_points
         self.path_index = 0
-        self.enemy_type = enemy_type  # "standard", "fast_weak", or "slow_strong"
+        self.enemy_type = enemy_type  # "standard", "fast_weak", "slow_strong", or "boss"
 
         # Tile position (integers)
         self.tile_x = self.path[0][0] // TILE_SIZE
@@ -18,6 +18,7 @@ class Enemy:
             self.move_delay = 0.7
         else:
             self.move_delay = 1.0 / self.speed
+        self.base_move_delay = self.move_delay  # Store original move_delay
         self.timer = 0.0
 
         self.health = health
@@ -25,7 +26,10 @@ class Enemy:
         self.reward = reward
         self.finished = False
         self.dead_handled = False
-        self.killed_by_tower = False  # Track if killed by tower (for coin drops)
+        self.killed_by_tower = False
+        self.slow_timer = 0
+        self.stun_timer = 0
+        self.has_been_stunned = False
 
         # Set color and size based on enemy type
         if enemy_type == "fast_weak":
@@ -36,6 +40,10 @@ class Enemy:
             # Slow strong enemies: purple/magenta color (larger squares)
             self.color = (200, 50, 200)  # Purple
             self.radius = TILE_SIZE // 2  # Much larger
+        elif enemy_type == "boss":
+            # Boss enemies: golden/orange color (very large)
+            self.color = (255, 165, 0)  # Orange-gold
+            self.radius = TILE_SIZE  # Very large (2x TILE_SIZE diameter)
         else:
             # Standard enemies: red
             self.color = (
@@ -66,6 +74,21 @@ class Enemy:
         if self.finished or self.path_index >= len(self.path) - 1:
             self.finished = True
             return
+
+        # Update stun timer
+        if self.stun_timer > 0:
+            self.stun_timer -= dt
+            # Don't move while stunned
+            self._lerp_to_tile()
+            self.rect.center = (int(self.lerp_x), int(self.lerp_y))
+            return
+
+        # Update slow timer
+        if self.slow_timer > 0:
+            self.slow_timer -= dt
+            self.move_delay = self.base_move_delay * 0.6
+        else:
+            self.move_delay = self.base_move_delay
 
         self.timer += dt
         if self.timer >= self.move_delay:
@@ -118,6 +141,27 @@ class Enemy:
                 self.color,
                 rect
             )
+        elif self.enemy_type == "boss":
+            # Draw as very large diamond/star (orange-gold)
+            size = self.radius * 2
+            rect = pygame.Rect(
+                self.rect.centerx - self.radius,
+                self.rect.centery - self.radius,
+                size,
+                size
+            )
+            pygame.draw.rect(
+                surface,
+                self.color,
+                rect
+            )
+            # Draw outline to make boss more distinctive
+            pygame.draw.rect(
+                surface,
+                (255, 255, 0),  # Yellow outline
+                rect,
+                3
+            )
         else:
             # Standard: red circle
             pygame.draw.circle(
@@ -129,6 +173,9 @@ class Enemy:
 
         # Health bar
         bar_width = 30
+        if self.enemy_type == "boss":
+            bar_width = 60  # Larger health bar for boss
+        
         bar_height = 5
         x = self.rect.centerx - bar_width // 2
         y = self.rect.top - 10
@@ -142,3 +189,13 @@ class Enemy:
                 GREEN,
                 (x, y, bar_width * health_ratio, bar_height)
             )
+
+        # Draw stun indicator (stars above enemy)
+        if self.stun_timer > 0:
+            star_size = 6
+            star_y = self.rect.top - 20
+            # Draw stars indicating stun
+            for i in range(2):
+                star_x = self.rect.centerx - 10 + i * 20
+                pygame.draw.circle(surface, (255, 255, 100), (star_x, star_y), star_size)
+                pygame.draw.circle(surface, (255, 255, 255), (star_x, star_y), star_size - 2)

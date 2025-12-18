@@ -15,10 +15,12 @@ class Shop:
         
         # Items for sale
         self.items = [
-            {"name": "Knight Tower", "cost": 50,  "id": "knight", "desc": "Melee tower, small range"},
-            {"name": "Archer Tower", "cost": 100, "id": "archer", "desc": "Ranged tower, medium range"},
-            {"name": "Wizard Tower", "cost": 200, "id": "wizard", "desc": "Magic tower, high range"},
-            {"name": "Musketeer Tower", "cost": 250, "id": "musketeer", "desc": "Longest range, lower damage"}
+            {"name": "Knight", "cost": 100,  "id": "knight", "desc": "DMG: 50 | FIRE RATE: 0.6s | RANGE: 60"},
+            {"name": "Jester", "cost": 120, "id": "jester", "desc": "DMG: 30 | FIRE RATE: 1.0s | RANGE: 55 | ABILITY: Stun 1s"},
+            {"name": "Archer", "cost": 150, "id": "archer", "desc": "DMG: 20 | FIRE RATE: 0.6s | RANGE: 160"},
+            {"name": "Wizard", "cost": 300, "id": "wizard", "desc": "DMG: 15 | FIRE RATE: 0.5s | RANGE: 240 | ABILITY: Slow 0.5s"},
+            {"name": "Musketeer", "cost": 250, "id": "musketeer", "desc": "DMG: 18 | FIRE RATE: 0.7s | RANGE: 280"},
+            {"name": "Cannon", "cost": 400, "id": "cannon", "desc": "DMG: 80 | FIRE RATE: 3.5s | RANGE: 300 | ABILITY: Fast Shot"}
         ]
         
         self.selected_index = 0
@@ -87,14 +89,19 @@ class Shop:
 
         # Title
         title = self.title_font.render("SHOP", True, (255, 215, 0))
-        screen.blit(title, (self.width//2 - title.get_width()//2, 50))
+        screen.blit(title, (self.width//2 - title.get_width()//2, 30))
+        
+        # Shop instruction message
+        instr_font = pygame.font.SysFont('Arial', 20, bold=True)
+        instr_text = instr_font.render('BUY TROOPS, MOVE TO THE DESIRED PLACE AND PRESS "P" TO ADD THEM ON THE MAP TO PROTECT YOUR KINGDOM', True, (100, 255, 100))
+        screen.blit(instr_text, (self.width//2 - instr_text.get_width()//2, 70))
 
         # Gold Display
         gold_text = self.font.render(f"Gold: {player.gold}", True, (255, 255, 0))
-        screen.blit(gold_text, (self.width//2 - gold_text.get_width()//2, 100))
+        screen.blit(gold_text, (self.width//2 - gold_text.get_width()//2, 110))
 
         # Items
-        start_y = 180
+        start_y = 160
         for i, item in enumerate(self.items):
             color = (255, 255, 255)
             prefix = "   "

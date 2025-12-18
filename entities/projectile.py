@@ -6,12 +6,13 @@ from coins import handle_death
 # Projectile optionally receives coin_manager and tilemap so it can trigger coin drops
 
 class Projectile:
-    def __init__(self, x, y, target, speed=400, damage=20, coin_manager=None, tilemap=None):
+    def __init__(self, x, y, target, speed=400, damage=20, slow_duration=0, projectile_speed=4.0, coin_manager=None, tilemap=None):
         self.x = x
         self.y = y
         self.target = target
-        self.speed = speed
+        self.speed = speed * projectile_speed  # Multiply base speed by projectile_speed factor
         self.damage = damage
+        self.slow_duration = slow_duration
         self.alive = True
         self.coin_manager = coin_manager
         self.tilemap = tilemap
@@ -40,6 +41,13 @@ class Projectile:
         if hit:
             self.target.health -= self.damage
             self.target.killed_by_tower = True  # Mark as killed by tower for coin drops
+            
+            # Apply slow effect if wizard
+            if self.slow_duration > 0:
+                if not hasattr(self.target, 'slow_timer'):
+                    self.target.slow_timer = 0
+                self.target.slow_timer = self.slow_duration
+            
             # If the hit killed the enemy, mark finished and spawn coins
             if self.target.health <= 0:
                 self.target.finished = True
