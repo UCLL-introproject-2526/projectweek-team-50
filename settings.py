@@ -63,6 +63,13 @@ TILE_SIZE = 32
 TILES_X = SCREEN_WIDTH // TILE_SIZE
 TILES_Y = SCREEN_HEIGHT // TILE_SIZE
 
+# ===============================
+# Player
+# ===============================
+# Visual-only sprite draw scale (collision remains TILE_SIZE).
+# Previously 1.5; make avatar 20% bigger.
+PLAYER_SPRITE_SCALE = 1.8
+
 # Grid visibility (can be toggled with G key in game)
 SHOW_GRID = True
 
