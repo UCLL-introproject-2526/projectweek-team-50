@@ -7,7 +7,7 @@ class WaveManager:
         self.path_points = tilemap.get_path_points()
 
         self.current_wave = 0
-        self.max_waves = 5
+        self.max_waves = 3
         self.wave_index = 0
         self.spawn_timer = 0.0
         self.spawn_delay = 1.8  # seconds between enemies
@@ -28,9 +28,9 @@ class WaveManager:
         
         # Increase difficulty per wave and vary based on wave type
         if wave_num == 1:
-            enemy_count = 10  # Wave 1: 10 standard enemies
+            enemy_count = 20  # Wave 1: 10 standard enemies
         else:
-            enemy_count = 12 + self.wave_index * 5  # Waves 2-5: 17, 22, 27, 32
+            enemy_count = 25 + self.wave_index * 5  # Waves 2-5: 17, 22, 27, 32
         
         # Add 1 for the boss at the end
         self.enemies_to_spawn = enemy_count + 1
