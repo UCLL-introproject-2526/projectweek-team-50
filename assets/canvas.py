@@ -27,7 +27,7 @@ screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Tile Painter")
 
 # Load image (256x256)
-image = pygame.image.load("FieldsTileset.png").convert_alpha()
+image = pygame.image.load("projectweek-team-50/assets/FieldsTileset.png").convert_alpha()
 
 # Selected tile
 selected_tile = None

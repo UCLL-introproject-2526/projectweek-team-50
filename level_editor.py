@@ -1,4 +1,5 @@
 import pygame
+import os
 from settings import *
 
 pygame.init()
@@ -32,16 +33,26 @@ while running:
                 current_tile = TILE_WALL
             elif event.key == pygame.K_3:
                 current_tile = TILE_PATH
+            elif event.key == pygame.K_4:
+                current_tile = TILE_START
+            elif event.key == pygame.K_5:
+                current_tile = TILE_FINISH
+            elif event.key == pygame.K_6:
+                current_tile = TILE_SHOP
+            elif event.key == pygame.K_7:
+                current_tile = TILE_CASINO
 
             elif event.key == pygame.K_s:
                 # SAVE TO TEXT FILE
-                with open("level.txt", "w") as f:
+                base_dir = os.path.dirname(__file__)
+                level_path = os.path.join(base_dir, "level.txt")
+                with open(level_path, "w", encoding="utf-8") as f:
                     f.write("level = [\n")
                     for row in tiles:
                         f.write(f"    {row},\n")
                     f.write("]\n")
 
-                print("Level saved to level.txt")
+                print(f"Level saved to {level_path}")
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_held = True  # Start drawing
@@ -71,9 +82,21 @@ while running:
 
     for y in range(TILES_Y):
         for x in range(TILES_X):
+            tid = tiles[y][x]
+            # In the editor, show START/FINISH with distinct colors
+            if tid == TILE_START:
+                color = (0, 255, 255)  # cyan for spawn
+            elif tid == TILE_FINISH:
+                color = (255, 60, 60)  # red for finish/castle
+            elif tid == TILE_SHOP:
+                color = (255, 165, 0)  # orange for shop
+            elif tid == TILE_CASINO:
+                color = (200, 50, 255)  # purple for casino
+            else:
+                color = TILE_COLORS[tid]
             pygame.draw.rect(
                 screen,
-                TILE_COLORS[tiles[y][x]],
+                color,
                 (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
             )
 

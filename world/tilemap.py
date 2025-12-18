@@ -17,7 +17,8 @@ class TileMap:
         return self.tiles[ty][tx] == TILE_WALL
 
     def is_path(self, tx, ty):
-        return self.tiles[ty][tx] == TILE_PATH
+        tile = self.tiles[ty][tx]
+        return tile in (TILE_PATH, TILE_START, TILE_FINISH, TILE_CASTLE)
     
 
     def is_buildable(self, x, y):
@@ -28,12 +29,39 @@ class TileMap:
         return self.tiles[y][x] == TILE_GRASS  # grass is buildable
 
 
+    def get_start_tile(self):
+        for y in range(TILES_Y):
+            for x in range(TILES_X):
+                if self.tiles[y][x] == TILE_START:
+                    return (x, y)
+        return None
+
+    def get_finish_tile(self):
+        for y in range(TILES_Y):
+            for x in range(TILES_X):
+                if self.tiles[y][x] == TILE_FINISH:
+                    return (x, y)
+        # Fallback to castle if finish not explicitly set
+        for y in range(TILES_Y):
+            for x in range(TILES_X):
+                if self.tiles[y][x] == TILE_CASTLE:
+                    return (x, y)
+        return None
+
+    def get_finish_center(self):
+        finish = self.get_finish_tile()
+        if finish:
+            fx, fy = finish
+            return (fx * TILE_SIZE + TILE_SIZE // 2, fy * TILE_SIZE + TILE_SIZE // 2)
+        return None
+
     def get_path_points(self):
-        # Find all PATH tiles and CASTLE
+        # Collect path-like tiles (PATH + FINISH; allow CASTLE as fallback)
         path_tiles = set()
         for y in range(TILES_Y):
             for x in range(TILES_X):
-                if self.tiles[y][x] == TILE_PATH or self.tiles[y][x] == TILE_CASTLE:
+                tid = self.tiles[y][x]
+                if tid in (TILE_PATH, TILE_FINISH, TILE_CASTLE):
                     path_tiles.add((x, y))
 
         if not path_tiles:
@@ -49,22 +77,24 @@ class TileMap:
                     result.append(n)
             return result
 
-        # Find start tile (only one PATH neighbor)
-        start = None
-        for tile in path_tiles:
-            if len(neighbors(*tile)) == 1:
-                start = tile
-                break
-
+        # Prefer explicit start tile; else infer start by degree==1
+        start = self.get_start_tile()
+        if start is None:
+            for tile in path_tiles:
+                if len(neighbors(*tile)) == 1:
+                    start = tile
+                    break
         if start is None:
             raise ValueError("Path has no valid start tile")
 
-        # Walk the path
+        # Walk the path until finish (if present)
         ordered_tiles = [start]
         visited = {start}
-
+        finish = self.get_finish_tile()
         current = start
         while True:
+            if finish is not None and current == finish:
+                break
             next_tiles = [
                 n for n in neighbors(*current)
                 if n not in visited
@@ -76,9 +106,6 @@ class TileMap:
             current = next_tiles[0]
             ordered_tiles.append(current)
             visited.add(current)
-
-        # Reverse the path so enemies come from the end towards the start
-        ordered_tiles = ordered_tiles[::-1]
 
         # Convert tiles → pixel centers
         path_points = []

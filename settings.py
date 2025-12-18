@@ -47,6 +47,10 @@ TILE_GRASS = 0
 TILE_WALL = 1
 TILE_PATH = 2
 TILE_CASTLE = 3
+TILE_START = 4
+TILE_FINISH = 5
+TILE_SHOP = 6
+TILE_CASINO = 7
 
 # Tile colors
 TILE_COLORS = {
@@ -54,6 +58,11 @@ TILE_COLORS = {
     TILE_WALL:  (80, 80, 80),
     TILE_PATH:  (150, 120, 60),
     TILE_CASTLE: (100, 100, 100),  # Grey castle
+    # In the game, render start/finish as normal path tiles
+    TILE_START: (150, 120, 60),
+    TILE_FINISH: (150, 120, 60),
+    TILE_SHOP: (40, 120, 40),  # Grass in game
+    TILE_CASINO: (40, 120, 40),  # Grass in game
 }
 
 # ===============================

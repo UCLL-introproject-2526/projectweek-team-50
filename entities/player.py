@@ -1,5 +1,5 @@
 import pygame
-from settings import WHITE, TILES_X, TILES_Y
+from settings import WHITE, TILES_X, TILES_Y, TILE_SIZE
 from entities.entity import Entity
 from inventory import Inventory
 
@@ -7,11 +7,17 @@ class Player(Entity):
     def __init__(self, tile_pos):
         super().__init__(tile_pos)
 
-        self.move_delay = 0.15
+        self.move_delay = 0.10  # Faster movement
         self.timer = 0.0
         self.gold = 0
         self.inventory = Inventory()
-        self.selected_tower = None  # Currently selected tower for placement
+        self.selected_tower = None
+        
+        # Player health system
+        self.health = 100
+        self.max_health = 100
+        self.damage_cooldown = 0.0
+        self.radius = TILE_SIZE // 2  # Collision radius
 
     def handle_input(self):
         keys = pygame.key.get_pressed()

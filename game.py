@@ -14,29 +14,29 @@ from world.wave_manager import WaveManager
 
 
 level = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -49,9 +49,30 @@ level = [
 
 class Game:
     def __init__(self):
-        # Window
+        # Detect display size
+        display_info = pygame.display.Info()
+        self.display_width = display_info.current_w
+        self.display_height = display_info.current_h
+        
+        # Fullscreen state
+        self.fullscreen = False
+        
+        # Window - start in windowed mode but sized appropriately
+        window_scale = 0.85  # Use 85% of screen by default
+        window_width = int(self.display_width * window_scale)
+        window_height = int(self.display_height * window_scale)
+        
+        # Keep aspect ratio of game
+        game_aspect = SCREEN_WIDTH / SCREEN_HEIGHT
+        window_aspect = window_width / window_height
+        
+        if window_aspect > game_aspect:
+            window_width = int(window_height * game_aspect)
+        else:
+            window_height = int(window_width / game_aspect)
+        
         self.window = pygame.display.set_mode(
-            (SCREEN_WIDTH, SCREEN_HEIGHT),
+            (window_width, window_height),
             pygame.RESIZABLE
         )
         pygame.display.set_caption(TITLE)
@@ -85,6 +106,8 @@ class Game:
 
         # Player
         self.player.gold = 100
+        self.player.health = 100
+        self.player.max_health = 100
 
         # Castle
         self.castle_hp = 100
@@ -117,6 +140,9 @@ class Game:
         self.startup_message_timer = 0.0
         self.startup_message_active = False
         self.startup_message_alpha = 255
+        
+        # Damage flash animation
+        self.damage_flash_timer = 0.0
 
     # -----------------------------
     # Utility
@@ -170,6 +196,35 @@ class Game:
                 self.window_size = (event.w, event.h)
 
             elif event.type == pygame.KEYDOWN:
+                # F11 or F for fullscreen toggle
+                if event.key == pygame.K_F11 or event.key == pygame.K_f:
+                    self.fullscreen = not self.fullscreen
+                    if self.fullscreen:
+                        self.window = pygame.display.set_mode(
+                            (self.display_width, self.display_height),
+                            pygame.FULLSCREEN
+                        )
+                    else:
+                        # Return to windowed mode with 85% screen size
+                        window_scale = 0.85
+                        window_width = int(self.display_width * window_scale)
+                        window_height = int(self.display_height * window_scale)
+                        
+                        # Keep aspect ratio
+                        game_aspect = SCREEN_WIDTH / SCREEN_HEIGHT
+                        window_aspect = window_width / window_height
+                        
+                        if window_aspect > game_aspect:
+                            window_width = int(window_height * game_aspect)
+                        else:
+                            window_height = int(window_width / game_aspect)
+                        
+                        self.window = pygame.display.set_mode(
+                            (window_width, window_height),
+                            pygame.RESIZABLE
+                        )
+                    self.window_size = self.window.get_size()
+                
                 if event.key == pygame.K_e:
                     if self.shopkeeper.is_player_close(self.player):
                         self.shop.toggle()
@@ -224,6 +279,47 @@ class Game:
             return
 
         self.player.update(dt, self.tilemap, self.coin_manager, self)
+        
+        # Update animated coins
+        self.coin_manager.update(dt)
+        
+        # Check collision with enemies for damage
+        for enemy in self.enemies:
+            dx = self.player.rect.centerx - enemy.rect.centerx
+            dy = self.player.rect.centery - enemy.rect.centery
+            dist = (dx*dx + dy*dy) ** 0.5
+            
+            # If player collides with enemy (within combined radius)
+            if dist < (self.player.radius + enemy.radius + 10):
+                if self.player.damage_cooldown <= 0:
+                    # Calculate damage based on wave and enemy strength
+                    base_damage = 5 + (self.wave_manager.current_wave - 1) * 3
+                    
+                    # Enemy type multipliers
+                    if enemy.enemy_type == "boss":
+                        damage = base_damage * 3
+                    elif enemy.enemy_type == "slow_strong":
+                        damage = base_damage * 2
+                    elif enemy.enemy_type == "fast_weak":
+                        damage = base_damage * 0.75
+                    else:
+                        damage = base_damage
+                    
+                    self.player.health -= damage
+                    self.player.damage_cooldown = 0.5
+                    self.damage_flash_timer = 0.3  # Flash for 0.3 seconds
+                    
+                    # Game over if player health reaches 0
+                    if self.player.health <= 0:
+                        self.game_over = True
+        
+        # Update damage cooldown
+        if self.player.damage_cooldown > 0:
+            self.player.damage_cooldown -= dt
+        
+        # Update damage flash timer
+        if self.damage_flash_timer > 0:
+            self.damage_flash_timer -= dt
 
         # Update placement cooldown
         if self.placement_cooldown > 0:
@@ -305,9 +401,13 @@ class Game:
         self.tilemap.draw(self.screen)
         self.player.draw(self.screen)
 
-        # Draw castle HP bar
-        castle_x = 11 * TILE_SIZE + TILE_SIZE // 2
-        castle_y = 6 * TILE_SIZE
+        # Draw castle HP bar above finish tile (fallback to default if missing)
+        finish_center = self.tilemap.get_finish_center()
+        if finish_center:
+            castle_x, castle_y = finish_center
+        else:
+            castle_x = 11 * TILE_SIZE + TILE_SIZE // 2
+            castle_y = 6 * TILE_SIZE
         bar_width = 50
         bar_height = 5
         bar_x = castle_x - bar_width // 2
@@ -363,6 +463,34 @@ class Game:
         # Draw money
         money_text = self.font.render(f"Money: {self.player.gold} TL", True, WHITE)
         self.screen.blit(money_text, (SCREEN_WIDTH//2 - money_text.get_width()//2, 10))
+        
+        # Draw player health bar
+        health_bar_width = 200
+        health_bar_height = 15
+        health_bar_x = SCREEN_WIDTH // 2 - health_bar_width // 2
+        health_bar_y = SCREEN_HEIGHT - 220
+        
+        # Background bar
+        pygame.draw.rect(self.screen, BLACK, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
+        
+        # Health bar with damage flash
+        if self.player.max_health > 0:
+            health_ratio = max(0, self.player.health / self.player.max_health)
+            
+            # Determine color: flash red when damaged, otherwise green/yellow/red based on health
+            if self.damage_flash_timer > 0:
+                health_color = (255, 0, 0)  # Red flash
+            else:
+                health_color = (0, 255, 0) if health_ratio > 0.5 else (255, 255, 0) if health_ratio > 0.25 else (255, 0, 0)
+            
+            pygame.draw.rect(self.screen, health_color, (health_bar_x, health_bar_y, health_bar_width * health_ratio, health_bar_height))
+        
+        # Border
+        pygame.draw.rect(self.screen, WHITE, (health_bar_x, health_bar_y, health_bar_width, health_bar_height), 2)
+        
+        # Health text
+        health_text = self.font.render(f"HP: {int(self.player.health)}/{self.player.max_health}", True, WHITE)
+        self.screen.blit(health_text, (health_bar_x + health_bar_width + 10, health_bar_y + 2))
 
         # Draw wave counter
         wave_text = self.font.render(f"Wave: {self.wave_manager.current_wave}", True, WHITE)
@@ -403,6 +531,26 @@ class Game:
             text_x = SCREEN_WIDTH // 2 - text_surface.get_width() // 2
             text_y = SCREEN_HEIGHT - 130
             self.screen.blit(text_surface, (text_x, text_y))
+        
+        # Draw damage flash animation (red pulsate and edges)
+        if self.damage_flash_timer > 0:
+            # Calculate flash intensity (0 to 1)
+            flash_intensity = self.damage_flash_timer / 0.3
+            
+            # Red edge effect
+            edge_thickness = int(20 * flash_intensity)
+            if edge_thickness > 0:
+                pygame.draw.rect(self.screen, (255, 0, 0), (0, 0, SCREEN_WIDTH, edge_thickness))  # Top
+                pygame.draw.rect(self.screen, (255, 0, 0), (0, SCREEN_HEIGHT - edge_thickness, SCREEN_WIDTH, edge_thickness))  # Bottom
+                pygame.draw.rect(self.screen, (255, 0, 0), (0, 0, edge_thickness, SCREEN_HEIGHT))  # Left
+                pygame.draw.rect(self.screen, (255, 0, 0), (SCREEN_WIDTH - edge_thickness, 0, edge_thickness, SCREEN_HEIGHT))  # Right
+            
+            # Red flash overlay with pulsate effect
+            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            overlay_alpha = int(100 * flash_intensity)
+            overlay.set_alpha(overlay_alpha)
+            overlay.fill((255, 0, 0))
+            self.screen.blit(overlay, (0, 0))
 
         # Draw wave announcements
         if self.wave_manager.show_announcement:
