@@ -113,8 +113,9 @@ class Game:
         self.casino = Casino(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.casino_keeper = CasinoKeeper(tile_pos=(14, 20), tile_size=TILE_SIZE)
         
-        # Startup message
-        self.startup_message_timer = 5.0
+        # Startup message - will be activated after first wave announcement
+        self.startup_message_timer = 0.0
+        self.startup_message_active = False
         self.startup_message_alpha = 255
 
     # -----------------------------
@@ -193,8 +194,14 @@ class Game:
     # Update
     # -----------------------------
     def update(self, dt):
+        # Activate startup message after first wave announcement ends
+        if not self.startup_message_active and not self.wave_manager.show_announcement and self.current_wave == 0:
+            self.startup_message_active = True
+            self.startup_message_timer = 5.0
+            print("Startup message activated!")  # Debug
+        
         # Update startup message timer
-        if self.startup_message_timer > 0:
+        if self.startup_message_active and self.startup_message_timer > 0:
             self.startup_message_timer -= dt
             # Fade out in the last 1 second
             if self.startup_message_timer < 1.0:
@@ -383,6 +390,20 @@ class Game:
         if self.casino.active:
             self.casino.draw(self.screen, self.player)
 
+        # Draw startup message above inventory bar (small, discrete)
+        if self.startup_message_active and self.startup_message_timer > 0:
+            msg_font = pygame.font.Font(None, 32)
+            msg_text = "THE GAME HAS STARTED : USE WASD TO NAVIGATE TO THE SHOP TO PROTECT YOUR KINGDOM!"
+            
+            # Create text surface
+            text_surface = msg_font.render(msg_text, True, (255, 255, 0))
+            text_surface.set_alpha(self.startup_message_alpha)
+            
+            # Draw text just above inventory bar
+            text_x = SCREEN_WIDTH // 2 - text_surface.get_width() // 2
+            text_y = SCREEN_HEIGHT - 130
+            self.screen.blit(text_surface, (text_x, text_y))
+
         # Draw wave announcements
         if self.wave_manager.show_announcement:
             # Semi-transparent overlay
@@ -409,32 +430,6 @@ class Game:
                 countdown_text = small_font.render(str(countdown), True, countdown_color)
                 countdown_rect = countdown_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60))
                 self.screen.blit(countdown_text, countdown_rect)
-
-        # Draw startup message
-        if self.startup_message_timer > 0:
-            # Create overlay
-            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            overlay.set_alpha(min(150, self.startup_message_alpha))
-            overlay.fill((0, 0, 0))
-            self.screen.blit(overlay, (0, 0))
-            
-            # Startup message with animation
-            startup_font = pygame.font.Font(None, 42)
-            startup_text = "THE GAME HAS STARTED : THE ENEMIES ARE ADVANCING TOWARDS YOUR CASTLE,"
-            startup_text2 = "USE WASD TO NAVIGATE TO THE SHOP TO PROTECT YOUR KINGDOM!"
-            
-            # Create text surfaces with alpha
-            text_surface1 = startup_font.render(startup_text, True, (255, 255, 100))
-            text_surface1.set_alpha(self.startup_message_alpha)
-            text_surface2 = startup_font.render(startup_text2, True, (255, 255, 100))
-            text_surface2.set_alpha(self.startup_message_alpha)
-            
-            # Center the text
-            text_rect1 = text_surface1.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30))
-            text_rect2 = text_surface2.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
-            
-            self.screen.blit(text_surface1, text_rect1)
-            self.screen.blit(text_surface2, text_rect2)
 
         # Draw game over or victory screen
         if self.game_over or self.game_won:
