@@ -5,7 +5,7 @@ SCREEN_WIDTH = 1536
 SCREEN_HEIGHT = 960
 
 
-TITLE = "Team 50 - Tower Defense Shop"
+TITLE = "No Way Through"
 
 # ===============================
 # Timing

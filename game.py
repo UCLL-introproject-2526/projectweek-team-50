@@ -1,5 +1,7 @@
 import pygame
 import os
+import math
+import random
 from settings import *
 from camera import Camera
 from shop import Shop
@@ -8,7 +10,7 @@ from casino import Casino
 from casino_keeper import CasinoKeeper
 from coins import CoinManager, handle_death
 
-from level_io import load_level_from_txt
+from level_io import load_level_from_txt, load_level_from_json
 
 from entities.player import Player
 from entities.troop import Troop
@@ -17,7 +19,7 @@ from world.tilemap import TileMap
 from world.wave_manager import WaveManager
 
 
-level = [
+DEFAULT_LEVEL = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -53,12 +55,34 @@ level = [
 # If you used the level editor, it saves to `level.txt`. Load it if present,
 # otherwise fall back to the hardcoded default above.
 _level_txt_path = os.path.join(os.path.dirname(__file__), "level.txt")
-level = load_level_from_txt(
+DEFAULT_LEVEL = load_level_from_txt(
     _level_txt_path,
-    fallback=level,
+    fallback=DEFAULT_LEVEL,
     expected_width=TILES_X,
     expected_height=TILES_Y,
 )
+
+
+def _collect_level_options() -> list[tuple[str, str]]:
+    """Return (path, label) options relative to this package."""
+    base_dir = os.path.dirname(__file__)
+    options: list[tuple[str, str]] = []
+
+    # Always include the editor level.
+    options.append((os.path.join(base_dir, "level.txt"), "Editor (level.txt)"))
+
+    levels_dir = os.path.join(base_dir, "levels")
+    try:
+        for name in sorted(os.listdir(levels_dir)):
+            if not name.lower().endswith(".json"):
+                continue
+            path = os.path.join(levels_dir, name)
+            label = os.path.splitext(name)[0]
+            options.append((path, label))
+    except Exception:
+        pass
+
+    return options
 
 
 class Game:
@@ -106,13 +130,65 @@ class Game:
         # Font for announcements
         self.announcement_font = get_pixel_font(60)
 
+        # App state
+        self.state = "menu"  # menu | playing | paused
+
+        # Menu
+        self.menu_time = 0.0
+        self.level_options = _collect_level_options()
+        self.selected_level_index = 0
+        self.menu_message = ""
+        self.menu_message_timer = 0.0
+
+        # Simple animated background particles for the menu
+        self._menu_particles: list[dict] = []
+        rng = random.Random(50)
+        for _ in range(36):
+            self._menu_particles.append(
+                {
+                    "x": rng.uniform(0, SCREEN_WIDTH),
+                    "y": rng.uniform(0, SCREEN_HEIGHT),
+                    "vx": rng.uniform(-18, 18),
+                    "vy": rng.uniform(8, 26),
+                    "r": rng.randint(1, 2),
+                }
+            )
+
+        # Pause/menu buttons (logical coords)
+        self.pause_button_rect = pygame.Rect(SCREEN_WIDTH - 130, 12, 118, 36)
+        self.menu_play_rect = pygame.Rect(SCREEN_WIDTH // 2 - 140, int(SCREEN_HEIGHT * 0.62), 280, 58)
+        self.menu_levels_rect = pygame.Rect(SCREEN_WIDTH // 2 - 240, int(SCREEN_HEIGHT * 0.25), 480, 260)
+        self.pause_resume_rect = pygame.Rect(SCREEN_WIDTH // 2 - 160, SCREEN_HEIGHT // 2 - 20, 320, 52)
+        self.pause_menu_rect = pygame.Rect(SCREEN_WIDTH // 2 - 160, SCREEN_HEIGHT // 2 + 52, 320, 52)
+
+        # World/gameplay state is initialized now, but gameplay doesn't update until Play.
+        self._init_world(DEFAULT_LEVEL)
+
+        # Ensure we begin on the menu.
+        self._to_menu(reset_message=False)
+
+    def _to_menu(self, *, reset_message: bool = True) -> None:
+        self.state = "menu"
+        if reset_message:
+            self.menu_message = ""
+            self.menu_message_timer = 0.0
+
+    def _to_playing(self) -> None:
+        self.state = "playing"
+
+    def _to_paused(self) -> None:
+        self.state = "paused"
+
+    def _init_world(self, level_grid):
         # World
-        self.tilemap = TileMap(level)
+        self.tilemap = TileMap(level_grid)
 
         # Camera
         self.camera_enabled = True
+        world_w = TILES_X * TILE_SIZE
+        world_h = TILES_Y * TILE_SIZE
         self.camera = Camera(
-            world_size=(SCREEN_WIDTH, SCREEN_HEIGHT),
+            world_size=(world_w, world_h),
             screen_size=(SCREEN_WIDTH, SCREEN_HEIGHT),
             zoom=1.7,
             follow_speed=6.0,
@@ -127,7 +203,7 @@ class Game:
         self.enemies = []
         self.towers = []
         self.projectiles = []
-        
+
         # Coin system
         self.coin_manager = CoinManager()
 
@@ -155,7 +231,7 @@ class Game:
 
         # Game state
         self.game_over = False
-        
+
         # Tower placement cooldown
         self.placement_cooldown = 0.0
 
@@ -163,19 +239,72 @@ class Game:
         self.shop = Shop(SCREEN_WIDTH, SCREEN_HEIGHT)
         shop_tile = self.tilemap.get_shop_tile() or (12, 20)
         self.shopkeeper = Shopkeeper(tile_pos=shop_tile, tile_size=TILE_SIZE)
-        
+
         # Casino system
         self.casino = Casino(SCREEN_WIDTH, SCREEN_HEIGHT)
         casino_tile = self.tilemap.get_casino_tile() or (14, 20)
         self.casino_keeper = CasinoKeeper(tile_pos=casino_tile, tile_size=TILE_SIZE)
-        
+
         # Startup message - will be activated after first wave announcement
         self.startup_message_timer = 0.0
         self.startup_message_active = False
         self.startup_message_alpha = 255
-        
+
         # Damage flash animation
         self.damage_flash_timer = 0.0
+
+    def _load_selected_level_and_play(self) -> None:
+        if not self.level_options:
+            self.menu_message = "No levels found."
+            self.menu_message_timer = 2.0
+            return
+
+        path, _label = self.level_options[self.selected_level_index]
+        base_dir = os.path.dirname(__file__)
+        fallback = DEFAULT_LEVEL
+
+        # Load
+        if path.lower().endswith(".json"):
+            grid = load_level_from_json(
+                path,
+                fallback=fallback,
+                expected_width=TILES_X,
+                expected_height=TILES_Y,
+                normalize_to_expected=True,
+                fill=TILE_GRASS,
+            )
+        else:
+            grid = load_level_from_txt(
+                path,
+                fallback=fallback,
+                expected_width=TILES_X,
+                expected_height=TILES_Y,
+            )
+
+        # If loading failed, show a brief message.
+        if grid is fallback and path != os.path.join(base_dir, "level.txt"):
+            self.menu_message = "Invalid level file; loaded default."
+            self.menu_message_timer = 2.0
+
+        self._init_world(grid)
+        self._to_playing()
+
+    def _window_to_logical(self, pos: tuple[int, int]) -> tuple[int, int] | None:
+        mx, my = pos
+        window_w, window_h = self.window.get_size()
+
+        scale = min(window_w / SCREEN_WIDTH, window_h / SCREEN_HEIGHT)
+        scaled_w = SCREEN_WIDTH * scale
+        scaled_h = SCREEN_HEIGHT * scale
+        x_offset = (window_w - scaled_w) / 2
+        y_offset = (window_h - scaled_h) / 2
+
+        if mx < x_offset or my < y_offset or mx > x_offset + scaled_w or my > y_offset + scaled_h:
+            return None
+
+        lx = int((mx - x_offset) / scale)
+        ly = int((my - y_offset) / scale)
+        return lx, ly
 
     # -----------------------------
     # Utility
@@ -238,6 +367,7 @@ class Game:
                 self.window_size = (event.w, event.h)
 
             elif event.type == pygame.KEYDOWN:
+                # Global keybinds
                 # F11 or F for fullscreen toggle
                 if event.key == pygame.K_F11 or event.key == pygame.K_f:
                     self.fullscreen = not self.fullscreen
@@ -272,6 +402,31 @@ class Game:
                     import settings
                     settings.SHOW_GRID = not settings.SHOW_GRID
 
+                # Menu state
+                if self.state == "menu":
+                    if event.key == pygame.K_ESCAPE:
+                        self.running = False
+                    elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE):
+                        self._load_selected_level_and_play()
+                    elif event.key == pygame.K_UP:
+                        if self.level_options:
+                            self.selected_level_index = (self.selected_level_index - 1) % len(self.level_options)
+                    elif event.key == pygame.K_DOWN:
+                        if self.level_options:
+                            self.selected_level_index = (self.selected_level_index + 1) % len(self.level_options)
+                    continue
+
+                # Paused state
+                if self.state == "paused":
+                    if event.key == pygame.K_ESCAPE:
+                        self._to_playing()
+                    continue
+
+                # Playing state
+                if event.key == pygame.K_ESCAPE:
+                    self._to_paused()
+                    continue
+
                 # C key toggles camera effects (follow/zoom/shake)
                 if event.key == pygame.K_c:
                     self.camera_enabled = not self.camera_enabled
@@ -294,13 +449,81 @@ class Game:
                         self.player.inventory.select_slot(slot_num)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                pass  # removed troop placement
+                # Menu clicks
+                if self.state == "menu":
+                    lpos = self._window_to_logical(event.pos)
+                    if lpos is None:
+                        continue
+                    lx, ly = lpos
+
+                    if self.menu_play_rect.collidepoint(lx, ly):
+                        self._load_selected_level_and_play()
+                        continue
+
+                    if self.menu_levels_rect.collidepoint(lx, ly):
+                        # Pick a row based on click position
+                        item_h = 30
+                        padding_top = 10
+                        local_y = ly - self.menu_levels_rect.y - padding_top
+                        if local_y >= 0:
+                            idx = local_y // item_h
+                            if 0 <= idx < len(self.level_options):
+                                self.selected_level_index = int(idx)
+                    continue
+
+                # Paused clicks
+                if self.state == "paused":
+                    lpos = self._window_to_logical(event.pos)
+                    if lpos is None:
+                        continue
+                    lx, ly = lpos
+
+                    if self.pause_resume_rect.collidepoint(lx, ly):
+                        self._to_playing()
+                        continue
+                    if self.pause_menu_rect.collidepoint(lx, ly):
+                        self._to_menu()
+                        continue
+                    continue
+
+                # Playing clicks
+                lpos = self._window_to_logical(event.pos)
+                if lpos is not None:
+                    lx, ly = lpos
+                    if self.pause_button_rect.collidepoint(lx, ly):
+                        self._to_paused()
+                        continue
+                # troop placement removed
 
 
     # -----------------------------
     # Update
     # -----------------------------
     def update(self, dt):
+        # Menu animations only
+        if self.state == "menu":
+            self.menu_time += dt
+            if self.menu_message_timer > 0:
+                self.menu_message_timer -= dt
+                if self.menu_message_timer <= 0:
+                    self.menu_message = ""
+
+            # Particle drift
+            for p in self._menu_particles:
+                p["x"] += p["vx"] * dt
+                p["y"] += p["vy"] * dt
+                if p["x"] < -10:
+                    p["x"] = SCREEN_WIDTH + 10
+                if p["x"] > SCREEN_WIDTH + 10:
+                    p["x"] = -10
+                if p["y"] > SCREEN_HEIGHT + 10:
+                    p["y"] = -10
+            return
+
+        # Freeze simulation when paused
+        if self.state == "paused":
+            return
+
         # Activate startup message after first wave announcement ends
         if not self.startup_message_active and not self.wave_manager.show_announcement and self.current_wave == 0:
             self.startup_message_active = True
@@ -532,6 +755,14 @@ class Game:
     def draw(self):
         self.screen.fill(BG_COLOR)
 
+        # -----------------------------
+        # Menu
+        # -----------------------------
+        if self.state == "menu":
+            self._draw_menu()
+            self._present()
+            return
+
         if self.camera_enabled:
             vw, vh = self.camera.view_size
             if self._camera_surface.get_width() != vw or self._camera_surface.get_height() != vh:
@@ -605,6 +836,22 @@ class Game:
         
         if self.casino.active:
             self.casino.draw(self.screen, self.player)
+
+        # Pause button (top-right)
+        if self.state == "playing":
+            mouse = self._window_to_logical(pygame.mouse.get_pos())
+            hover = mouse is not None and self.pause_button_rect.collidepoint(mouse)
+            btn_color = BUTTON_HOVER_COLOR if hover else BUTTON_COLOR
+            pygame.draw.rect(self.screen, btn_color, self.pause_button_rect, border_radius=6)
+            pygame.draw.rect(self.screen, WHITE, self.pause_button_rect, 2, border_radius=6)
+            txt = get_pixel_font(22).render("PAUSE", True, TEXT_COLOR)
+            self.screen.blit(
+                txt,
+                (
+                    self.pause_button_rect.centerx - txt.get_width() // 2,
+                    self.pause_button_rect.centery - txt.get_height() // 2,
+                ),
+            )
 
         # Draw startup message above inventory bar (small, discrete)
         if self.startup_message_active and self.startup_message_timer > 0:
@@ -704,7 +951,38 @@ class Game:
                 victory_rect = victory_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
                 self.screen.blit(victory_text, victory_rect)
 
+        # Paused overlay
+        if self.state == "paused":
+            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            overlay.set_alpha(170)
+            overlay.fill((0, 0, 0))
+            self.screen.blit(overlay, (0, 0))
+
+            title_font = get_pixel_font(72)
+            title = title_font.render("PAUSED", True, (255, 255, 0))
+            self.screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 170))
+
+            mouse = self._window_to_logical(pygame.mouse.get_pos())
+            hover_resume = mouse is not None and self.pause_resume_rect.collidepoint(mouse)
+            hover_menu = mouse is not None and self.pause_menu_rect.collidepoint(mouse)
+
+            for rect, label, hover in (
+                (self.pause_resume_rect, "RESUME", hover_resume),
+                (self.pause_menu_rect, "MAIN MENU", hover_menu),
+            ):
+                col = BUTTON_HOVER_COLOR if hover else BUTTON_COLOR
+                pygame.draw.rect(self.screen, col, rect, border_radius=8)
+                pygame.draw.rect(self.screen, WHITE, rect, 2, border_radius=8)
+                t = get_pixel_font(30).render(label, True, TEXT_COLOR)
+                self.screen.blit(t, (rect.centerx - t.get_width() // 2, rect.centery - t.get_height() // 2))
+
+            hint = get_pixel_font(22).render("Esc to resume", True, TEXT_COLOR)
+            self.screen.blit(hint, (SCREEN_WIDTH // 2 - hint.get_width() // 2, 145))
+
         # ===== PROPER SCALING =====
+        self._present()
+
+    def _present(self):
         window_w, window_h = self.window.get_size()
         scale = min(
             window_w / SCREEN_WIDTH,
@@ -727,6 +1005,72 @@ class Game:
         self.window.blit(scaled_surface, (x_offset, y_offset))
 
         pygame.display.flip()
+
+    def _draw_menu(self):
+        # Background
+        self.screen.fill(BG_COLOR)
+
+        # Particles
+        for p in self._menu_particles:
+            pygame.draw.circle(self.screen, (60, 60, 70), (int(p["x"]), int(p["y"])), p["r"])
+
+        # Title (animated bob + slight pulse)
+        title_font = get_pixel_font(84)
+        bob = int(math.sin(self.menu_time * 2.2) * 10)
+        title = title_font.render("NO WAY THROUGH", True, (255, 255, 0))
+        self.screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 80 + bob))
+
+        sub = get_pixel_font(26).render("Select a level, then press Play", True, TEXT_COLOR)
+        self.screen.blit(sub, (SCREEN_WIDTH // 2 - sub.get_width() // 2, 170 + bob))
+
+        # Levels box
+        pygame.draw.rect(self.screen, UI_BG_COLOR, self.menu_levels_rect, border_radius=10)
+        pygame.draw.rect(self.screen, WHITE, self.menu_levels_rect, 2, border_radius=10)
+
+        item_font = get_pixel_font(24)
+        padding_x = 14
+        padding_y = 10
+        item_h = 30
+
+        for i, (_path, label) in enumerate(self.level_options[:8]):
+            y = self.menu_levels_rect.y + padding_y + i * item_h
+            x = self.menu_levels_rect.x + padding_x
+
+            is_selected = i == self.selected_level_index
+            if is_selected:
+                highlight = pygame.Rect(self.menu_levels_rect.x + 8, y - 3, self.menu_levels_rect.w - 16, item_h)
+                pygame.draw.rect(self.screen, BUTTON_SELECTED_COLOR, highlight, border_radius=6)
+
+            t = item_font.render(label, True, BLACK if is_selected else TEXT_COLOR)
+            self.screen.blit(t, (x, y))
+
+        hint = get_pixel_font(20).render("Up/Down to change, Enter to Play", True, TEXT_COLOR)
+        self.screen.blit(hint, (SCREEN_WIDTH // 2 - hint.get_width() // 2, self.menu_levels_rect.bottom + 10))
+
+        # Play button (pulse)
+        mouse = self._window_to_logical(pygame.mouse.get_pos())
+        hover = mouse is not None and self.menu_play_rect.collidepoint(mouse)
+        pulse = 0.5 + 0.5 * math.sin(self.menu_time * 3.0)
+        base = BUTTON_HOVER_COLOR if hover else BUTTON_COLOR
+        col = (
+            min(255, int(base[0] + 20 * pulse)),
+            min(255, int(base[1] + 20 * pulse)),
+            min(255, int(base[2] + 20 * pulse)),
+        )
+        pygame.draw.rect(self.screen, col, self.menu_play_rect, border_radius=10)
+        pygame.draw.rect(self.screen, WHITE, self.menu_play_rect, 2, border_radius=10)
+        play_text = get_pixel_font(34).render("PLAY", True, TEXT_COLOR)
+        self.screen.blit(
+            play_text,
+            (
+                self.menu_play_rect.centerx - play_text.get_width() // 2,
+                self.menu_play_rect.centery - play_text.get_height() // 2,
+            ),
+        )
+
+        if self.menu_message:
+            msg = get_pixel_font(22).render(self.menu_message, True, (255, 100, 100))
+            self.screen.blit(msg, (SCREEN_WIDTH // 2 - msg.get_width() // 2, self.menu_play_rect.bottom + 14))
 
     # -----------------------------
     # Main Loop
