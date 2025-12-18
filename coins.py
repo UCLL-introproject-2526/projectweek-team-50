@@ -15,9 +15,19 @@ def handle_death(enemy, coin_manager, tilemap):
     tx = enemy.tile_x
     ty = enemy.tile_y
 
-    # Spawn 2-3 coins with parabolic animation
-    for _ in range(random.randint(2, 3)):
-        value = random.randint(5, 10)
+    # Determine coin drop based on enemy type
+    if hasattr(enemy, 'enemy_type') and enemy.enemy_type == "boss":
+        # Boss always drops 5-7 coins worth 10 TL each
+        num_coins = random.randint(5, 7)
+        coin_value = random.randint(5, 10)
+    else:
+        # Regular enemies drop 2-3 coins worth 5-10 TL each
+        num_coins = random.randint(2, 3)
+        coin_value = random.randint(5, 10)
+
+    # Spawn coins with parabolic animation
+    for _ in range(num_coins):
+        value = coin_value
         
         # Random offset within 3-tile radius for landing position
         offset_x = random.randint(-3, 3)
@@ -131,6 +141,22 @@ class CoinManager:
     
     def collect_at_tile(self, tx, ty):
         return self.coins.pop((tx, ty), 0)
+
+    def collect_nearby(self, tx, ty, radius=1):
+        """Collect and remove all coins within Chebyshev distance `radius` of (tx,ty).
+        Returns the total value collected."""
+        total = 0
+        # gather keys to remove to avoid modifying dict during iteration
+        to_remove = []
+        for (cx, cy), val in list(self.coins.items()):
+            if max(abs(cx - tx), abs(cy - ty)) <= radius:
+                total += val
+                to_remove.append((cx, cy))
+
+        for k in to_remove:
+            self.coins.pop(k, None)
+
+        return total
     
     def draw(self, surface):
         GOLD = (255, 215, 0)
