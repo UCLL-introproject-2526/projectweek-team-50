@@ -118,21 +118,23 @@ class Enemy:
         self.lerp_x += (target_center_x - self.lerp_x) * self.lerp_factor
         self.lerp_y += (target_center_y - self.lerp_y) * self.lerp_factor
 
-    def draw(self, surface):
+    def draw(self, surface, offset: tuple[int, int] = (0, 0)):
+        ox, oy = offset
+        rect = self.rect.move(ox, oy)
         if self.enemy_type == "fast_weak":
             # Draw as small circle (yellow-green)
             pygame.draw.circle(
                 surface,
                 self.color,
-                self.rect.center,
+                rect.center,
                 self.radius
             )
         elif self.enemy_type == "slow_strong":
             # Draw as large square (purple)
             size = self.radius * 2
             rect = pygame.Rect(
-                self.rect.centerx - self.radius,
-                self.rect.centery - self.radius,
+                rect.centerx - self.radius,
+                rect.centery - self.radius,
                 size,
                 size
             )
@@ -145,8 +147,8 @@ class Enemy:
             # Draw as very large diamond/star (orange-gold)
             size = self.radius * 2
             rect = pygame.Rect(
-                self.rect.centerx - self.radius,
-                self.rect.centery - self.radius,
+                rect.centerx - self.radius,
+                rect.centery - self.radius,
                 size,
                 size
             )
@@ -167,7 +169,7 @@ class Enemy:
             pygame.draw.circle(
                 surface,
                 self.color,
-                self.rect.center,
+                rect.center,
                 self.radius
             )
 
@@ -177,8 +179,8 @@ class Enemy:
             bar_width = 60  # Larger health bar for boss
         
         bar_height = 5
-        x = self.rect.centerx - bar_width // 2
-        y = self.rect.top - 10
+        x = rect.centerx - bar_width // 2
+        y = rect.top - 10
 
         pygame.draw.rect(surface, BLACK, (x, y, bar_width, bar_height))
 
@@ -193,9 +195,9 @@ class Enemy:
         # Draw stun indicator (stars above enemy)
         if self.stun_timer > 0:
             star_size = 6
-            star_y = self.rect.top - 20
+            star_y = rect.top - 20
             # Draw stars indicating stun
             for i in range(2):
-                star_x = self.rect.centerx - 10 + i * 20
+                star_x = rect.centerx - 10 + i * 20
                 pygame.draw.circle(surface, (255, 255, 100), (star_x, star_y), star_size)
                 pygame.draw.circle(surface, (255, 255, 255), (star_x, star_y), star_size - 2)

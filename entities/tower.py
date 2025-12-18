@@ -121,11 +121,14 @@ class Tower(Entity):
                 )
             )
 
-    def draw(self, surface):
+    def draw(self, surface, offset: tuple[int, int] = (0, 0)):
+        ox, oy = offset
+        base_rect = self.rect.move(ox, oy)
+
         if (self.type == 'knight' or self.type == 'jester') and self.attack_timer > 0:
             # Melee attack animation: expand during attack
             expansion = int(20 * (1 - self.attack_timer / 0.2))
-            expanded_rect = self.rect.inflate(expansion * 2, expansion * 2)
+            expanded_rect = base_rect.inflate(expansion * 2, expansion * 2)
             pygame.draw.rect(surface, self.color, expanded_rect)
         else:
-            pygame.draw.rect(surface, self.color, self.rect)
+            pygame.draw.rect(surface, self.color, base_rect)

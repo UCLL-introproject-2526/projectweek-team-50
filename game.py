@@ -1,10 +1,14 @@
 import pygame
+import os
 from settings import *
+from camera import Camera
 from shop import Shop
 from shopkeeper import Shopkeeper
 from casino import Casino
 from casino_keeper import CasinoKeeper
 from coins import CoinManager, handle_death
+
+from level_io import load_level_from_txt
 
 from entities.player import Player
 from entities.troop import Troop
@@ -45,6 +49,16 @@ level = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
+
+# If you used the level editor, it saves to `level.txt`. Load it if present,
+# otherwise fall back to the hardcoded default above.
+_level_txt_path = os.path.join(os.path.dirname(__file__), "level.txt")
+level = load_level_from_txt(
+    _level_txt_path,
+    fallback=level,
+    expected_width=TILES_X,
+    expected_height=TILES_Y,
+)
 
 
 class Game:
@@ -95,6 +109,19 @@ class Game:
         # World
         self.tilemap = TileMap(level)
 
+        # Camera
+        self.camera_enabled = True
+        self.camera = Camera(
+            world_size=(SCREEN_WIDTH, SCREEN_HEIGHT),
+            screen_size=(SCREEN_WIDTH, SCREEN_HEIGHT),
+            zoom=1.7,
+            follow_speed=6.0,
+            shake_max_px=14.0,
+            shake_decay=3.0,
+        )
+        vw, vh = self.camera.view_size
+        self._camera_surface = pygame.Surface((vw, vh))
+
         # Entities
         self.player = Player(tile_pos=(1, 1))
         self.enemies = []
@@ -108,6 +135,10 @@ class Game:
         self.player.gold = 100
         self.player.health = 100
         self.player.max_health = 100
+
+        # Start the camera centered on the player so it follows immediately.
+        self.camera.set_target(self.player.rect.center)
+        self.camera.pos.update(self.player.rect.center)
 
         # Castle
         self.castle_hp = 100
@@ -175,8 +206,17 @@ class Game:
         lx = (mx - x_offset) / scale
         ly = (my - y_offset) / scale
 
-        tile_x = int(lx // TILE_SIZE)
-        tile_y = int(ly // TILE_SIZE)
+        if self.camera_enabled:
+            # Map logical screen coords into the camera view surface coords,
+            # then into world coords by adding the camera top-left.
+            top_left_x, top_left_y = self.camera.get_top_left()
+            world_x = top_left_x + (lx / self.camera.zoom)
+            world_y = top_left_y + (ly / self.camera.zoom)
+            tile_x = int(world_x // TILE_SIZE)
+            tile_y = int(world_y // TILE_SIZE)
+        else:
+            tile_x = int(lx // TILE_SIZE)
+            tile_y = int(ly // TILE_SIZE)
 
         return tile_x, tile_y
 
@@ -229,6 +269,11 @@ class Game:
                 if event.key == pygame.K_g:
                     import settings
                     settings.SHOW_GRID = not settings.SHOW_GRID
+
+                # C key toggles camera effects (follow/zoom/shake)
+                if event.key == pygame.K_c:
+                    self.camera_enabled = not self.camera_enabled
+                    self.camera.set_enabled(self.camera_enabled, snap=True)
                 
                 if event.key == pygame.K_e:
                     if self.shopkeeper.is_player_close(self.player):
@@ -284,6 +329,10 @@ class Game:
             return
 
         self.player.update(dt, self.tilemap, self.coin_manager, self)
+
+        # Camera follow
+        if self.camera_enabled:
+            self.camera.update(dt, target_pos=self.player.rect.center)
         
         # Update animated coins
         self.coin_manager.update(dt)
@@ -313,10 +362,18 @@ class Game:
                     self.player.health -= damage
                     self.player.damage_cooldown = 0.5
                     self.damage_flash_timer = 0.3  # Flash for 0.3 seconds
+
+                    if self.camera_enabled:
+                        # Mild hit shake
+                        self.camera.add_shake(0.22)
                     
                     # Game over if player health reaches 0
                     if self.player.health <= 0:
                         self.game_over = True
+
+                        if self.camera_enabled:
+                            # Slightly stronger death shake
+                            self.camera.add_shake(0.55)
         
         # Update damage cooldown
         if self.player.damage_cooldown > 0:
@@ -400,11 +457,15 @@ class Game:
     # -----------------------------
     # Draw
     # -----------------------------
-    def draw(self):
-        self.screen.fill(BG_COLOR)
+    def _draw_world(self, surface: pygame.Surface, *, offset: tuple[int, int] = (0, 0)):
+        ox, oy = offset
 
-        self.tilemap.draw(self.screen)
-        self.player.draw(self.screen)
+        surface.fill(BG_COLOR)
+
+        self.tilemap.draw(surface, player_bottom=self.player.rect.bottom, offset=offset)
+        self.player.draw(surface, offset=offset)
+        # Trees that the player is "behind" should draw on top
+        self.tilemap.draw_tree_foreground(surface, player_bottom=self.player.rect.bottom, offset=offset)
 
         # Draw castle HP bar above finish tile (fallback to default if missing)
         finish_center = self.tilemap.get_finish_center()
@@ -413,57 +474,74 @@ class Game:
         else:
             castle_x = 11 * TILE_SIZE + TILE_SIZE // 2
             castle_y = 6 * TILE_SIZE
+
         bar_width = 50
         bar_height = 5
-        bar_x = castle_x - bar_width // 2
-        bar_y = castle_y - 10
-        pygame.draw.rect(self.screen, BLACK, (bar_x, bar_y, bar_width, bar_height))
+        bar_x = castle_x - bar_width // 2 + ox
+        bar_y = castle_y - 10 + oy
+        pygame.draw.rect(surface, BLACK, (bar_x, bar_y, bar_width, bar_height))
         if self.castle_max_hp > 0:
             hp_ratio = self.castle_hp / self.castle_max_hp
-            pygame.draw.rect(self.screen, GREEN, (bar_x, bar_y, bar_width * hp_ratio, bar_height))
+            pygame.draw.rect(surface, GREEN, (bar_x, bar_y, bar_width * hp_ratio, bar_height))
 
         for tower in self.towers:
-            tower.draw(self.screen)
+            tower.draw(surface, offset=offset)
 
         for enemy in self.enemies:
-            enemy.draw(self.screen)
-            
+            enemy.draw(surface, offset=offset)
+
             # Draw health indicator above boss enemies
             if enemy.enemy_type == "boss":
+                rect = enemy.rect.move(ox, oy)
                 # Full health bar for boss
                 bar_width = 60
                 bar_height = 8
-                bar_x = enemy.rect.centerx - bar_width // 2
-                bar_y = enemy.rect.top - 20
-                
+                bar_x = rect.centerx - bar_width // 2
+                bar_y = rect.top - 20
+
                 # Background bar
-                pygame.draw.rect(self.screen, BLACK, (bar_x, bar_y, bar_width, bar_height))
-                
+                pygame.draw.rect(surface, BLACK, (bar_x, bar_y, bar_width, bar_height))
+
                 # Health bar
                 if enemy.max_health > 0:
                     health_ratio = max(0, enemy.health / enemy.max_health)
                     health_color = (0, 255, 0) if health_ratio > 0.5 else (255, 255, 0) if health_ratio > 0.2 else (255, 0, 0)
-                    pygame.draw.rect(self.screen, health_color, (bar_x, bar_y, bar_width * health_ratio, bar_height))
-                
+                    pygame.draw.rect(surface, health_color, (bar_x, bar_y, bar_width * health_ratio, bar_height))
+
                 # Border
-                pygame.draw.rect(self.screen, WHITE, (bar_x, bar_y, bar_width, bar_height), 2)
-            
+                pygame.draw.rect(surface, WHITE, (bar_x, bar_y, bar_width, bar_height), 2)
+
             # Draw warning indicator for slow enemies
             if enemy.enemy_type == "slow_strong":
+                rect = enemy.rect.move(ox, oy)
                 # Small warning icon
-                pygame.draw.circle(self.screen, (200, 50, 200), (enemy.rect.centerx + 15, enemy.rect.centery - 15), 5)
-                pygame.draw.circle(self.screen, (255, 255, 255), (enemy.rect.centerx + 15, enemy.rect.centery - 15), 5, 1)
+                pygame.draw.circle(surface, (200, 50, 200), (rect.centerx + 15, rect.centery - 15), 5)
+                pygame.draw.circle(surface, (255, 255, 255), (rect.centerx + 15, rect.centery - 15), 5, 1)
 
         for projectile in self.projectiles:
-            projectile.draw(self.screen)
-        
+            projectile.draw(surface, offset=offset)
+
         # Draw coins
-        self.coin_manager.draw(self.screen)
+        self.coin_manager.draw(surface, offset=offset)
 
-        self.coin_manager.draw(self.screen)
+        self.shopkeeper.draw(surface, self.player, offset=offset)
+        self.casino_keeper.draw(surface, self.player, offset=offset)
 
-        self.shopkeeper.draw(self.screen, self.player)
-        self.casino_keeper.draw(self.screen, self.player)
+    def draw(self):
+        self.screen.fill(BG_COLOR)
+
+        if self.camera_enabled:
+            vw, vh = self.camera.view_size
+            if self._camera_surface.get_width() != vw or self._camera_surface.get_height() != vh:
+                self._camera_surface = pygame.Surface((vw, vh))
+
+            draw_offset = self.camera.get_draw_offset()
+            self._draw_world(self._camera_surface, offset=draw_offset)
+
+            scaled_world = pygame.transform.scale(self._camera_surface, (SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.screen.blit(scaled_world, (0, 0))
+        else:
+            self._draw_world(self.screen, offset=(0, 0))
 
         # Draw money
         money_text = self.font.render(f"Money: {self.player.gold} TL", True, WHITE)
@@ -473,7 +551,10 @@ class Game:
         health_bar_width = 200
         health_bar_height = 15
         health_bar_x = SCREEN_WIDTH // 2 - health_bar_width // 2
-        health_bar_y = SCREEN_HEIGHT - 220
+        # Place HP bar just above the inventory bar (no overlap)
+        inventory_bar_height = 70
+        inventory_bar_y = min(int(SCREEN_HEIGHT * 0.90), SCREEN_HEIGHT - inventory_bar_height)
+        health_bar_y = inventory_bar_y - health_bar_height - 10
         
         # Background bar
         pygame.draw.rect(self.screen, BLACK, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))

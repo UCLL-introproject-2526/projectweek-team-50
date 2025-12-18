@@ -29,15 +29,17 @@ class Shopkeeper:
         dist = math.hypot(px - sx, py - sy)
         return dist <= self.interaction_range
 
-    def draw(self, screen, player):
+    def draw(self, screen, player, offset: tuple[int, int] = (0, 0)):
+        ox, oy = offset
         # Draw Shopkeeper
-        screen.blit(self.image, (self.x, self.y))
+        screen.blit(self.image, (self.x + ox, self.y + oy))
         
         # Draw interaction prompt
         if self.is_player_close(player):
             font = get_pixel_font(16)
             msg = font.render("Press E", True, (255, 255, 255))
             # Draw above head
-            bg_rect = pygame.Rect(self.rect.centerx - 25, self.rect.top - 25, 50, 20)
+            rect = self.rect.move(ox, oy)
+            bg_rect = pygame.Rect(rect.centerx - 25, rect.top - 25, 50, 20)
             pygame.draw.rect(screen, (50, 50, 50), bg_rect)
             screen.blit(msg, (bg_rect.x + 5, bg_rect.y))

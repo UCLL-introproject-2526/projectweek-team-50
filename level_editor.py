@@ -1,6 +1,7 @@
 import pygame
 import os
 from settings import *
+from level_io import load_level_from_txt, save_level_to_txt
 
 pygame.init()
 
@@ -9,14 +10,39 @@ pygame.display.set_caption("Tile Level Editor")
 
 clock = pygame.time.Clock()
 
+# Tile previews
+tileset_dir = os.path.join(os.path.dirname(__file__), "assets", "tiles")
+try:
+    TILE_IMG_GRASS = pygame.image.load(os.path.join(tileset_dir, "grass.png")).convert_alpha()
+    TILE_IMG_PATH = pygame.image.load(os.path.join(tileset_dir, "PATH MAIN.png")).convert_alpha()
+except Exception:
+    TILE_IMG_GRASS = None
+    TILE_IMG_PATH = None
+
 # Grid data
-tiles = [
+base_dir = os.path.dirname(__file__)
+level_path = os.path.join(base_dir, "level.txt")
+
+default_tiles = [
     [TILE_GRASS for _ in range(TILES_X)]
     for _ in range(TILES_Y)
 ]
 
+tiles = load_level_from_txt(
+    level_path,
+    fallback=default_tiles,
+    expected_width=TILES_X,
+    expected_height=TILES_Y,
+)
+
 current_tile = TILE_WALL  # default brush
 mouse_held = False  # Track if mouse button is held
+dirty = False  # Track unsaved changes
+
+
+def save_level() -> None:
+    save_level_to_txt(level_path, tiles)
+    print(f"Level saved to {level_path}")
 
 running = True
 while running:
@@ -24,6 +50,8 @@ while running:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            if dirty:
+                save_level()
             running = False
 
         elif event.type == pygame.KEYDOWN:
@@ -43,16 +71,8 @@ while running:
                 current_tile = TILE_CASINO
 
             elif event.key == pygame.K_s:
-                # SAVE TO TEXT FILE
-                base_dir = os.path.dirname(__file__)
-                level_path = os.path.join(base_dir, "level.txt")
-                with open(level_path, "w", encoding="utf-8") as f:
-                    f.write("level = [\n")
-                    for row in tiles:
-                        f.write(f"    {row},\n")
-                    f.write("]\n")
-
-                print(f"Level saved to {level_path}")
+                save_level()
+                dirty = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_held = True  # Start drawing
@@ -67,6 +87,7 @@ while running:
 
                 if 0 <= tx < TILES_X and 0 <= ty < TILES_Y:
                     tiles[ty][tx] = current_tile
+                    dirty = True
 
     # Also draw on initial click
     if mouse_held:
@@ -76,6 +97,7 @@ while running:
 
         if 0 <= tx < TILES_X and 0 <= ty < TILES_Y:
             tiles[ty][tx] = current_tile
+            dirty = True
 
     # DRAW
     screen.fill((0, 0, 0))
@@ -86,19 +108,44 @@ while running:
             # In the editor, show START/FINISH with distinct colors
             if tid == TILE_START:
                 color = (0, 255, 255)  # cyan for spawn
+                pygame.draw.rect(
+                    screen,
+                    color,
+                    (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                )
             elif tid == TILE_FINISH:
                 color = (255, 60, 60)  # red for finish/castle
+                pygame.draw.rect(
+                    screen,
+                    color,
+                    (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                )
             elif tid == TILE_SHOP:
                 color = (255, 165, 0)  # orange for shop
+                pygame.draw.rect(
+                    screen,
+                    color,
+                    (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                )
             elif tid == TILE_CASINO:
                 color = (200, 50, 255)  # purple for casino
+                pygame.draw.rect(
+                    screen,
+                    color,
+                    (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                )
             else:
-                color = TILE_COLORS[tid]
-            pygame.draw.rect(
-                screen,
-                color,
-                (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-            )
+                if tid == TILE_GRASS and TILE_IMG_GRASS is not None:
+                    screen.blit(TILE_IMG_GRASS, (x * TILE_SIZE, y * TILE_SIZE))
+                elif tid == TILE_PATH and TILE_IMG_PATH is not None:
+                    screen.blit(TILE_IMG_PATH, (x * TILE_SIZE, y * TILE_SIZE))
+                else:
+                    color = TILE_COLORS[tid]
+                    pygame.draw.rect(
+                        screen,
+                        color,
+                        (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                    )
 
     # Grid
     for x in range(TILES_X + 1):

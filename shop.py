@@ -1,5 +1,5 @@
 import pygame
-from settings import get_pixel_font
+from settings import GOLD, YELLOW, TILE_COLORS, TILE_PATH, get_pixel_font
 
 class Shop:
     def __init__(self, screen_width, screen_height):
@@ -85,6 +85,15 @@ class Shop:
         if not self.active:
             return
 
+        def fit_text(font, text, max_width):
+            if font.size(text)[0] <= max_width:
+                return text
+            ellipsis = "..."
+            trimmed = text
+            while trimmed and font.size(trimmed + ellipsis)[0] > max_width:
+                trimmed = trimmed[:-1]
+            return (trimmed + ellipsis) if trimmed else ellipsis
+
         # Create semi-transparent overlay
         overlay = pygame.Surface((self.width, self.height))
         overlay.set_alpha(210)
@@ -92,20 +101,20 @@ class Shop:
         screen.blit(overlay, (0, 0))
 
         # Draw decorative border
-        border_color = (100, 200, 255)
+        border_color = GOLD
         border_thickness = 3
         pygame.draw.rect(screen, border_color, (10, 10, self.width - 20, self.height - 20), border_thickness)
         
         # Inner decorative line
-        pygame.draw.rect(screen, (60, 120, 180), (13, 13, self.width - 26, self.height - 26), 1)
+        pygame.draw.rect(screen, TILE_COLORS[TILE_PATH], (13, 13, self.width - 26, self.height - 26), 1)
 
         # Title
-        title = self.title_font.render("⚔ SHOP ⚔", True, (100, 200, 255))
+        title = self.title_font.render("⚔ SHOP ⚔", True, GOLD)
         title_rect = title.get_rect(center=(self.width // 2, 35))
         screen.blit(title, title_rect)
         
         # Decorative line under title
-        pygame.draw.line(screen, (100, 200, 255), (60, 70), (self.width - 60, 70), 2)
+        pygame.draw.line(screen, GOLD, (60, 70), (self.width - 60, 70), 2)
 
         # Gold Display with icon-like styling
         gold_font = get_pixel_font(24)
@@ -115,12 +124,12 @@ class Shop:
 
         # Instructions at top
         instr_font = get_pixel_font(16)
-        instr = instr_font.render("Navigate with UP/DOWN • BUY with SPACE • CLOSE with ESC", True, (150, 200, 255))
+        instr = instr_font.render("Navigate with UP/DOWN • BUY with SPACE • CLOSE with ESC", True, (200, 190, 120))
         instr_rect = instr.get_rect(center=(self.width // 2, 125))
         screen.blit(instr, instr_rect)
         
         # Decorative separator
-        pygame.draw.line(screen, (80, 150, 220), (60, 145), (self.width - 60, 145), 1)
+        pygame.draw.line(screen, TILE_COLORS[TILE_PATH], (60, 145), (self.width - 60, 145), 1)
 
         # Items - Card-based layout
         card_width = 350
@@ -137,7 +146,7 @@ class Shop:
             # Card background
             if is_selected:
                 card_color = (50, 120, 180)
-                border_color = (150, 220, 255)
+                border_color = YELLOW
                 border_width = 3
                 # Glow effect
                 glow_rect = pygame.Rect(card_x - 5, card_y - 5, card_width + 10, card_height + 10)
@@ -153,15 +162,15 @@ class Shop:
             
             # Selection indicator
             if is_selected:
-                pygame.draw.polygon(screen, (150, 220, 255), 
+                pygame.draw.polygon(screen, YELLOW, 
                     [(card_x - 10, card_y + card_height // 2 - 5),
                      (card_x - 10, card_y + card_height // 2 + 5),
                      (card_x - 2, card_y + card_height // 2)])
             
             # Item name and cost (left side)
             name_font = get_pixel_font(22)
-            color = (150, 220, 255) if is_selected else (200, 220, 255)
-            name_text = name_font.render(item['name'], True, color)
+            color = YELLOW if is_selected else (230, 220, 180)
+            name_text = name_font.render(fit_text(name_font, item['name'], card_width - 130), True, color)
             screen.blit(name_text, (card_x + 15, card_y + 8))
             
             # Cost (right side)
@@ -172,14 +181,15 @@ class Shop:
             screen.blit(cost_text, cost_rect)
             
             # Description (bottom of card)
+            desc_max_w = card_width - 30
             if is_selected:
                 desc_font = get_pixel_font(16)
-                desc_text = desc_font.render(item['desc'], True, (200, 200, 200))
+                desc_text = desc_font.render(fit_text(desc_font, item['desc'], desc_max_w), True, (200, 200, 200))
                 screen.blit(desc_text, (card_x + 15, card_y + 38))
             else:
                 # Show short info for non-selected
                 desc_font = get_pixel_font(14)
-                desc_text = desc_font.render(item['desc'][:40] + "...", True, (150, 150, 150))
+                desc_text = desc_font.render(fit_text(desc_font, item['desc'], desc_max_w), True, (150, 150, 150))
                 screen.blit(desc_text, (card_x + 15, card_y + 38))
         
         # Bottom instructions

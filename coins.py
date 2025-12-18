@@ -94,20 +94,21 @@ class AnimatedCoin:
         
         self.y += vertical_distance * progress + vertical_offset
     
-    def draw(self, surface):
+    def draw(self, surface, offset: tuple[int, int] = (0, 0)):
         GOLD = (255, 215, 0)
         DARK_GOLD = (184, 134, 11)
         size = TILE_SIZE // 3
+        ox, oy = offset
         
         # Draw coin as circle
-        pygame.draw.circle(surface, GOLD, (int(self.x), int(self.y)), size // 2)
-        pygame.draw.circle(surface, DARK_GOLD, (int(self.x), int(self.y)), size // 2, 2)
+        pygame.draw.circle(surface, GOLD, (int(self.x) + ox, int(self.y) + oy), size // 2)
+        pygame.draw.circle(surface, DARK_GOLD, (int(self.x) + ox, int(self.y) + oy), size // 2, 2)
         
         # Draw value text if landed
         if self.completed:
             font = get_pixel_font(16)
             text = font.render(str(self.value), True, GOLD)
-            surface.blit(text, (int(self.x) - 8, int(self.y) - 8))
+            surface.blit(text, (int(self.x) + ox - 8, int(self.y) + oy - 8))
 
 # Floating text that drifts upward and fades
 class FloatingText:
@@ -215,20 +216,21 @@ class CoinManager:
 
         return total
     
-    def draw(self, surface):
+    def draw(self, surface, offset: tuple[int, int] = (0, 0)):
         GOLD = (255, 215, 0)
         size = TILE_SIZE // 3
+        ox, oy = offset
         
         # Draw static coins
         for (tx, ty), value in self.coins.items():
-            x = tx * TILE_SIZE + (TILE_SIZE - size) // 2
-            y = ty * TILE_SIZE + (TILE_SIZE - size) // 2
+            x = tx * TILE_SIZE + (TILE_SIZE - size) // 2 + ox
+            y = ty * TILE_SIZE + (TILE_SIZE - size) // 2 + oy
             pygame.draw.rect(surface, GOLD, (x, y, size, size))
             pygame.draw.rect(surface, (184, 134, 11), (x, y, size, size), 1)
         
         # Draw animated coins
         for coin in self.animated_coins:
-            coin.draw(surface)
+            coin.draw(surface, offset=offset)
         
         # Draw floating text
         for text in self.floating_texts:
