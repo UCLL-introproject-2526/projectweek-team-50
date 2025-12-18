@@ -135,7 +135,7 @@ class FloatingText:
         # Drift upward
         self.y -= self.drift_speed * dt
     
-    def draw(self, surface):
+    def draw(self, surface, offset: tuple[int, int] = (0, 0)):
         if self.completed:
             return
         
@@ -148,8 +148,9 @@ class FloatingText:
         text_surface = font.render(str(self.value), True, (255, 215, 0))  # Gold
         text_surface.set_alpha(alpha)
         
-        # Draw at current position
-        surface.blit(text_surface, (int(self.x) - 8, int(self.y) - 8))
+        ox, oy = offset
+        # Draw at current position with offset
+        surface.blit(text_surface, (int(self.x) + ox - 8, int(self.y) + oy - 8))
 
 # CoinManager with animation support
 class CoinManager:
@@ -234,5 +235,5 @@ class CoinManager:
         
         # Draw floating text
         for text in self.floating_texts:
-            text.draw(surface)
+            text.draw(surface, offset=offset)
 

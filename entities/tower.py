@@ -8,32 +8,32 @@ class Tower(Entity):
         super().__init__(tile_pos)
         self.type = tower_type
         if tower_type == 'knight':
-            self.range = 60
+            self.range = 80
             self.damage = 50
-            self.fire_delay = 0.6
+            self.fire_delay = 1.0
             self.color = RED
             self.slow_duration = 0
-            self.stun_duration = 0
+            self.stun_duration = 0.4
             self.projectile_speed = 4.0
         elif tower_type == 'jester':
-            self.range = 55
-            self.damage = 30
-            self.fire_delay = 1.0
+            self.range = 60
+            self.damage = 25
+            self.fire_delay = 0.4
             self.color = (200, 50, 200)
             self.slow_duration = 0
-            self.stun_duration = 1.0
+            self.stun_duration = 0
             self.projectile_speed = 4.0
         elif tower_type == 'archer':
             self.range = 160
             self.damage = 20
             self.fire_delay = 0.6
             self.color = GREEN
-            self.slow_duration = 0
+            self.slow_duration = 0.3
             self.stun_duration = 0
             self.projectile_speed = 4.0
         elif tower_type == 'wizard':
             self.range = 240
-            self.damage = 15
+            self.damage = 25
             self.fire_delay = 0.5
             self.color = BLUE
             self.slow_duration = 0.5
@@ -42,11 +42,11 @@ class Tower(Entity):
         elif tower_type == 'cannon':
             self.range = 300
             self.damage = 80
-            self.fire_delay = 3.5
+            self.fire_delay = 2.0
             self.color = (60, 60, 60)
             self.slow_duration = 0
             self.stun_duration = 0
-            self.projectile_speed = 8.0
+            self.projectile_speed = 10.0
         elif tower_type == 'musketeer':
             self.range = 280
             self.damage = 18
@@ -92,8 +92,8 @@ class Tower(Entity):
             target.killed_by_tower = True
             self.attack_timer = 0.2
             
-            # Jester stuns the enemy only on first hit
-            if self.type == 'jester' and not target.has_been_stunned:
+            # Knight stuns the enemy only on first hit
+            if self.type == 'knight' and not target.has_been_stunned:
                 target.stun_timer = self.stun_duration
                 target.has_been_stunned = True
             

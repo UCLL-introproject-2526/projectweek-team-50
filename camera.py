@@ -107,7 +107,7 @@ class Camera:
         top_left = self._clamp_top_left(top_left)
         return float(top_left.x), float(top_left.y)
 
-    def get_draw_offset(self) -> tuple[int, int]:
+    def get_draw_offset(self) -> tuple[float, float]:
         """Offset to add to world coordinates when drawing to the camera view surface."""
         tx, ty = self.get_top_left()
-        return int(-tx), int(-ty)
+        return -tx, -ty
