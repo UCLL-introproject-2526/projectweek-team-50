@@ -1,5 +1,5 @@
 import pygame
-from settings import SCREEN_WIDTH, TILE_SIZE, TEXT_COLOR, UI_BG_COLOR, BUTTON_COLOR, BUTTON_SELECTED_COLOR, TROOP_DATA, get_pixel_font
+from settings import SCREEN_WIDTH, TILE_SIZE, GOLD, YELLOW, get_pixel_font
 
 
 class Inventory:
@@ -76,34 +76,34 @@ class Inventory:
     def draw(self, surface):
         """Draw inventory bar at the bottom of screen with modern design"""
         # Inventory bar background - gradient effect with border
-        bar_height = 90
-        bar_y = int(surface.get_height() * 0.82)
+        bar_height = 70
+        bar_y = min(int(surface.get_height() * 0.90), surface.get_height() - bar_height)
         inventory_bg = pygame.Rect(0, bar_y, surface.get_width(), bar_height)
         
         # Modern dark background with subtle gradient
         pygame.draw.rect(surface, (25, 28, 35), inventory_bg)
-        pygame.draw.line(surface, (100, 200, 255), (0, bar_y), (surface.get_width(), bar_y), 3)
-        pygame.draw.line(surface, (80, 150, 220), (0, bar_y + bar_height - 1), (surface.get_width(), bar_y + bar_height - 1), 1)
+        pygame.draw.line(surface, GOLD, (0, bar_y), (surface.get_width(), bar_y), 3)
+        pygame.draw.line(surface, (120, 95, 35), (0, bar_y + bar_height - 1), (surface.get_width(), bar_y + bar_height - 1), 1)
         
         # Draw title with glow effect
         title_font = get_pixel_font(20)
-        title_text = title_font.render("INVENTORY", True, (100, 200, 255))
-        surface.blit(title_text, (15, bar_y + 5))
+        title_text = title_font.render("INVENTORY", True, GOLD)
+        surface.blit(title_text, (15, bar_y + 4))
         
         # Draw gold amount
         gold_font = get_pixel_font(16)
         # Assuming we have access to player gold via a parent reference
         # For now, just show inventory status
         status_text = gold_font.render("Slots:", True, (180, 180, 180))
-        surface.blit(status_text, (15, bar_y + 30))
+        surface.blit(status_text, (15, bar_y + 26))
         
         # Draw inventory slots - CENTERED with better styling
         slot_width = 70
-        slot_height = 50
+        slot_height = 44
         slot_spacing = 8
         total_slots_width = self.MAX_SLOTS * slot_width + (self.MAX_SLOTS - 1) * slot_spacing
         slot_x_start = (surface.get_width() - total_slots_width) // 2
-        slot_y = bar_y + 18
+        slot_y = bar_y + 12
         
         for slot_num in range(self.MAX_SLOTS):
             slot_x = slot_x_start + slot_num * (slot_width + slot_spacing)
@@ -114,13 +114,13 @@ class Inventory:
             slot_rect = pygame.Rect(slot_x, slot_y, slot_width, slot_height)
             
             if is_selected and tower_type is not None:
-                # Selected slot - bright blue glow
-                pygame.draw.rect(surface, (100, 200, 255), slot_rect)
-                pygame.draw.rect(surface, (200, 255, 255), slot_rect, 3)
+                # Selected slot - golden glow
+                pygame.draw.rect(surface, GOLD, slot_rect)
+                pygame.draw.rect(surface, YELLOW, slot_rect, 3)
             elif tower_type is not None:
-                # Filled slot - dark blue
-                pygame.draw.rect(surface, (40, 80, 120), slot_rect)
-                pygame.draw.rect(surface, (100, 150, 200), slot_rect, 2)
+                # Filled slot - dark gold/brown
+                pygame.draw.rect(surface, (70, 55, 25), slot_rect)
+                pygame.draw.rect(surface, (200, 170, 80), slot_rect, 2)
             else:
                 # Empty slot - dark gray
                 pygame.draw.rect(surface, (35, 35, 45), slot_rect)
@@ -130,16 +130,16 @@ class Inventory:
             if tower_type is not None:
                 # Tower name
                 name_text = self.small_font.render(tower_type.capitalize(), True, (255, 255, 255))
-                text_rect = name_text.get_rect(center=(slot_x + slot_width // 2, slot_y + 15))
+                text_rect = name_text.get_rect(center=(slot_x + slot_width // 2, slot_y + 13))
                 surface.blit(name_text, text_rect)
                 
                 # Quantity
                 qty = self.quantities.get(tower_type, 0)
                 qty_text = self.small_font.render(f"x{qty}", True, (255, 200, 100))
-                qty_rect = qty_text.get_rect(center=(slot_x + slot_width // 2, slot_y + 35))
+                qty_rect = qty_text.get_rect(center=(slot_x + slot_width // 2, slot_y + 31))
                 surface.blit(qty_text, qty_rect)
             else:
                 # Slot number for empty slots
                 num_text = self.small_font.render(str(slot_num + 1), True, (100, 100, 120))
-                text_rect = num_text.get_rect(center=(slot_x + slot_width // 2, slot_y + 25))
+                text_rect = num_text.get_rect(center=(slot_x + slot_width // 2, slot_y + 22))
                 surface.blit(num_text, text_rect)

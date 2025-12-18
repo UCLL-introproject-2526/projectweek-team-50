@@ -1,7 +1,7 @@
 import pygame
 import random
 import math
-from settings import TROOP_DATA, get_pixel_font
+from settings import GOLD, YELLOW, get_pixel_font
 
 class Casino:
     def __init__(self, screen_width, screen_height):
@@ -126,8 +126,8 @@ class Casino:
             colors = [
                 (255, 0, 0),
                 (0, 255, 0),
-                (0, 0, 255),
-                (255, 255, 0),
+                GOLD,
+                YELLOW,
                 (255, 0, 255)
             ]
             color = colors[int((progress * 5) % len(colors))]

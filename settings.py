@@ -5,7 +5,7 @@ SCREEN_WIDTH = 1536
 SCREEN_HEIGHT = 960
 
 
-TITLE = "Team 50 - Tower Defense Shop"
+TITLE = "No Way Through"
 
 # ===============================
 # Timing
@@ -41,6 +41,7 @@ RED = (255, 0, 0)
 GREEN = (0, 200, 0)
 BLUE = (0, 120, 255)
 YELLOW = (255, 255, 0)
+GOLD = (255, 215, 0)
 
 BG_COLOR = (30, 30, 30)
 GRID_COLOR = (60, 60, 60)
@@ -96,7 +97,7 @@ TROOP_DATA = {
         "cost": 120,
         "range": 55,
         "damage": 30,
-        "delay": 1.0,
+        "delay": 0.667,
         "color": (200, 50, 200),
         "stun_duration": 1.0,
     },

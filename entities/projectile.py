@@ -62,5 +62,6 @@ class Projectile:
         self.x += (dx / dist) * self.speed * dt
         self.y += (dy / dist) * self.speed * dt
 
-    def draw(self, surface):
-        pygame.draw.circle(surface, YELLOW, (int(self.x), int(self.y)), 4)
+    def draw(self, surface, offset: tuple[int, int] = (0, 0)):
+        ox, oy = offset
+        pygame.draw.circle(surface, YELLOW, (int(self.x) + ox, int(self.y) + oy), 4)
