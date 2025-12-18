@@ -84,13 +84,13 @@ class Game:
         self.running = True
 
         # Font
-        self.font = pygame.font.SysFont(None, 24)
+        self.font = get_pixel_font(24)
 
         # Font for UI
-        self.font = pygame.font.SysFont(None, 24)
+        self.font = get_pixel_font(24)
         
         # Font for announcements
-        self.announcement_font = pygame.font.SysFont(None, 60)
+        self.announcement_font = get_pixel_font(60)
 
         # World
         self.tilemap = TileMap(level)
@@ -224,6 +224,11 @@ class Game:
                             pygame.RESIZABLE
                         )
                     self.window_size = self.window.get_size()
+                
+                # G key to toggle grid
+                if event.key == pygame.K_g:
+                    import settings
+                    settings.SHOW_GRID = not settings.SHOW_GRID
                 
                 if event.key == pygame.K_e:
                     if self.shopkeeper.is_player_close(self.player):
@@ -520,7 +525,7 @@ class Game:
 
         # Draw startup message above inventory bar (small, discrete)
         if self.startup_message_active and self.startup_message_timer > 0:
-            msg_font = pygame.font.Font(None, 32)
+            msg_font = get_pixel_font(32)
             msg_text = "THE GAME HAS STARTED : USE WASD TO NAVIGATE TO THE SHOP TO PROTECT YOUR KINGDOM!"
             
             # Create text surface
@@ -561,8 +566,8 @@ class Game:
             self.screen.blit(overlay, (0, 0))
             
             # Announcement text with countdown
-            announcement_font = pygame.font.Font(None, 72)
-            small_font = pygame.font.Font(None, 48)
+            announcement_font = get_pixel_font(72)
+            small_font = get_pixel_font(48)
             
             announcement_text = announcement_font.render(self.wave_manager.announcement_text, True, (255, 255, 0))
             text_rect = announcement_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 60))
@@ -597,21 +602,21 @@ class Game:
             if self.game_over:
                 # Game over text - red with slamming animation
                 base_font_size = int(100 * slam_scale)
-                game_over_font = pygame.font.Font(None, base_font_size)
+                game_over_font = get_pixel_font(base_font_size)
                 game_over_text = game_over_font.render("YOU LOSE!!!!!!!!", True, (255, 0, 0))
                 game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
                 self.screen.blit(game_over_text, game_over_rect)
                 
                 # Skill issue text - slightly smaller and lower
                 skill_font_size = int(70 * slam_scale)
-                skill_font = pygame.font.Font(None, skill_font_size)
+                skill_font = get_pixel_font(skill_font_size)
                 skill_text = skill_font.render("SKILL ISSUE!!!!!!!!!", True, (255, 0, 0))
                 skill_rect = skill_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
                 self.screen.blit(skill_text, skill_rect)
             else:
                 # Victory text - green with slamming animation
                 base_font_size = int(100 * slam_scale)
-                victory_font = pygame.font.Font(None, base_font_size)
+                victory_font = get_pixel_font(base_font_size)
                 victory_text = victory_font.render("VICTORY!!!!", True, (0, 255, 0))
                 victory_rect = victory_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
                 self.screen.blit(victory_text, victory_rect)

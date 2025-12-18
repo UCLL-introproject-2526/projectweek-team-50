@@ -13,6 +13,26 @@ TITLE = "Team 50 - Tower Defense Shop"
 FPS = 60
 
 # ===============================
+# Pixel Art Font
+# ===============================
+import pygame
+import os
+
+# Path to the pixel art font
+PIXEL_FONT_PATH = os.path.join(os.path.dirname(__file__), "assets", "pixel_font.ttf")
+
+def get_pixel_font(size, bold=False):
+    """
+    Get a pixel art font with the specified size.
+    Note: TTF fonts don't support bold parameter, so it's ignored.
+    """
+    try:
+        return pygame.font.Font(PIXEL_FONT_PATH, size)
+    except:
+        # Fallback to system font if pixel font is not found
+        return pygame.font.Font(None, size)
+
+# ===============================
 # Colors (ALL COMMON COLORS)
 # ===============================
 WHITE = (255, 255, 255)
@@ -41,6 +61,9 @@ TEXT_COLOR = (240, 240, 240)
 TILE_SIZE = 32
 TILES_X = SCREEN_WIDTH // TILE_SIZE
 TILES_Y = SCREEN_HEIGHT // TILE_SIZE
+
+# Grid visibility (can be toggled with G key in game)
+SHOW_GRID = True
 
 # Tile IDs
 TILE_GRASS = 0

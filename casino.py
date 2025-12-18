@@ -1,7 +1,7 @@
 import pygame
 import random
 import math
-from settings import TROOP_DATA
+from settings import TROOP_DATA, get_pixel_font
 
 class Casino:
     def __init__(self, screen_width, screen_height):
@@ -11,8 +11,8 @@ class Casino:
         self.fee = 150
         
         # UI Configuration
-        self.font = pygame.font.SysFont('Arial', 24)
-        self.title_font = pygame.font.SysFont('Arial', 40, bold=True)
+        self.font = get_pixel_font(24)
+        self.title_font = get_pixel_font(40)
         self.overlay = pygame.Surface((self.width, self.height))
         self.overlay.set_alpha(200)
         self.overlay.fill((0, 0, 0))
@@ -119,9 +119,9 @@ class Casino:
             display_troop = self.available_troops[cycle_index]
             
             # Big spinning text
-            spin_font = pygame.font.SysFont('Arial', 80, bold=True)
+            spin_font = get_pixel_font(80)
             scale = 1.0 + abs(0.2 * (progress - 0.5))  # Pulsing effect
-            spin_font = pygame.font.SysFont('Arial', int(80 * scale), bold=True)
+            spin_font = get_pixel_font(int(80 * scale))
             
             colors = [
                 (255, 0, 0),
@@ -136,7 +136,7 @@ class Casino:
             screen.blit(spin_text, (self.width//2 - spin_text.get_width()//2, self.height//2 - 100))
             
             # Spinning indicator
-            indicator_font = pygame.font.SysFont('Arial', 40)
+            indicator_font = get_pixel_font(40)
             spinner = ["◐", "◓", "◑", "◒"][int((progress * 4) % 4)]
             spinner_text = indicator_font.render(spinner, True, (255, 255, 255))
             screen.blit(spinner_text, (self.width//2 - spinner_text.get_width()//2, self.height//2 + 50))
@@ -147,7 +147,7 @@ class Casino:
             
             # Scale up animation
             scale = 1.0 + (1.0 - progress) * 0.5  # Grows then shrinks
-            win_font = pygame.font.SysFont('Arial', int(60 * scale), bold=True)
+            win_font = get_pixel_font(int(60 * scale))
             
             # Color animation (golden yellow)
             color_intensity = int(200 + 55 * (1.0 - progress))
@@ -172,7 +172,7 @@ class Casino:
             screen.blit(troops_text, (self.width//2 - troops_text.get_width()//2, self.height//2 + 50))
             
             troops_list = ", ".join([t.capitalize() for t in self.available_troops])
-            troops_display = pygame.font.SysFont('Arial', 20).render(troops_list, True, (200, 200, 200))
+            troops_display = get_pixel_font(20).render(troops_list, True, (200, 200, 200))
             screen.blit(troops_display, (self.width//2 - troops_display.get_width()//2, self.height//2 + 100))
 
         # Instructions
@@ -180,7 +180,7 @@ class Casino:
             "Press SPACE or ENTER to play (or spin again if already won)",
             "Press ESC to close casino"
         ]
-        instr_font = pygame.font.SysFont('Arial', 18)
+        instr_font = get_pixel_font(18)
         instr_y = self.height - 100
         for instr in instructions:
             instr_surf = instr_font.render(instr, True, (255, 255, 255))

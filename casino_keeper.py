@@ -1,5 +1,6 @@
 import pygame
 import math
+from settings import get_pixel_font
 
 class CasinoKeeper:
     def __init__(self, tile_pos, tile_size):
@@ -17,7 +18,7 @@ class CasinoKeeper:
         # Visuals (Purple square with 'C' for Casino)
         self.image = pygame.Surface((self.width, self.height))
         self.image.fill((200, 50, 200))  # Purple
-        font = pygame.font.SysFont('Arial', 20, bold=True)
+        font = get_pixel_font(20)
         text = font.render("C", True, (255, 255, 255))
         self.image.blit(text, (10, 5))
 
@@ -34,7 +35,7 @@ class CasinoKeeper:
         
         # Draw interaction prompt
         if self.is_player_close(player):
-            font = pygame.font.SysFont('Arial', 16)
+            font = get_pixel_font(16)
             msg = font.render("Press E", True, (255, 255, 255))
             # Draw above head
             bg_rect = pygame.Rect(self.rect.centerx - 25, self.rect.top - 25, 50, 20)

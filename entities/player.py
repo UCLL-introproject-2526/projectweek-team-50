@@ -1,5 +1,5 @@
 import pygame
-from settings import WHITE, TILES_X, TILES_Y, TILE_SIZE
+from settings import WHITE, TILES_X, TILES_Y, TILE_SIZE, get_pixel_font
 from entities.entity import Entity
 from inventory import Inventory
 
@@ -55,3 +55,9 @@ class Player(Entity):
 
     def draw(self, surface):
         pygame.draw.rect(surface, WHITE, self.rect)
+        
+        # Draw happy ASCII face
+        font = get_pixel_font(16)
+        face = font.render(":)", True, (0, 0, 0))  # Black on white
+        face_rect = face.get_rect(center=self.rect.center)
+        surface.blit(face, face_rect)

@@ -129,17 +129,19 @@ class TileMap:
                     (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
                 )
 
-        # Grid overlay
-        for x in range(TILES_X + 1):
-            pygame.draw.line(
-                surface, (60, 60, 60),
-                (x * TILE_SIZE, 0),
-                (x * TILE_SIZE, SCREEN_HEIGHT), 1
-            )
+        # Grid overlay - only draw if SHOW_GRID is enabled
+        import settings
+        if settings.SHOW_GRID:
+            for x in range(TILES_X + 1):
+                pygame.draw.line(
+                    surface, (60, 60, 60),
+                    (x * TILE_SIZE, 0),
+                    (x * TILE_SIZE, SCREEN_HEIGHT), 1
+                )
 
-        for y in range(TILES_Y + 1):
-            pygame.draw.line(
-                surface, (60, 60, 60),
-                (0, y * TILE_SIZE),
-                (SCREEN_WIDTH, y * TILE_SIZE), 1
-            )
+            for y in range(TILES_Y + 1):
+                pygame.draw.line(
+                    surface, (60, 60, 60),
+                    (0, y * TILE_SIZE),
+                    (SCREEN_WIDTH, y * TILE_SIZE), 1
+                )

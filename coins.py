@@ -1,7 +1,7 @@
 import random
 import pygame
 import math
-from settings import TILE_SIZE
+from settings import TILE_SIZE, get_pixel_font
 
 def handle_death(enemy, coin_manager, tilemap):
     if enemy.dead_handled: 
@@ -93,7 +93,7 @@ class AnimatedCoin:
         
         # Draw value text if landed
         if self.completed:
-            font = pygame.font.SysFont(None, 16)
+            font = get_pixel_font(16)
             text = font.render(str(self.value), True, GOLD)
             surface.blit(text, (int(self.x) - 8, int(self.y) - 8))
 

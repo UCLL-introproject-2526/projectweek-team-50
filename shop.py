@@ -1,4 +1,5 @@
 import pygame
+from settings import get_pixel_font
 
 class Shop:
     def __init__(self, screen_width, screen_height):
@@ -7,8 +8,8 @@ class Shop:
         self.height = screen_height
         
         # UI Configuration
-        self.font = pygame.font.SysFont('Arial', 24)
-        self.title_font = pygame.font.SysFont('Arial', 40, bold=True)
+        self.font = get_pixel_font(24)
+        self.title_font = get_pixel_font(40)
         self.overlay = pygame.Surface((self.width, self.height))
         self.overlay.set_alpha(200)
         self.overlay.fill((0, 0, 0))
@@ -84,50 +85,110 @@ class Shop:
         if not self.active:
             return
 
-        # Background
-        screen.blit(self.overlay, (0, 0))
+        # Create semi-transparent overlay
+        overlay = pygame.Surface((self.width, self.height))
+        overlay.set_alpha(210)
+        overlay.fill((15, 15, 20))
+        screen.blit(overlay, (0, 0))
+
+        # Draw decorative border
+        border_color = (100, 200, 255)
+        border_thickness = 3
+        pygame.draw.rect(screen, border_color, (10, 10, self.width - 20, self.height - 20), border_thickness)
+        
+        # Inner decorative line
+        pygame.draw.rect(screen, (60, 120, 180), (13, 13, self.width - 26, self.height - 26), 1)
 
         # Title
-        title = self.title_font.render("SHOP", True, (255, 215, 0))
-        screen.blit(title, (self.width//2 - title.get_width()//2, 30))
+        title = self.title_font.render("⚔ SHOP ⚔", True, (100, 200, 255))
+        title_rect = title.get_rect(center=(self.width // 2, 35))
+        screen.blit(title, title_rect)
         
-        # Shop instruction message
-        instr_font = pygame.font.SysFont('Arial', 20, bold=True)
-        instr_text = instr_font.render('BUY TROOPS, MOVE TO THE DESIRED PLACE AND PRESS "P" TO ADD THEM ON THE MAP TO PROTECT YOUR KINGDOM', True, (100, 255, 100))
-        screen.blit(instr_text, (self.width//2 - instr_text.get_width()//2, 70))
+        # Decorative line under title
+        pygame.draw.line(screen, (100, 200, 255), (60, 70), (self.width - 60, 70), 2)
 
-        # Gold Display
-        gold_text = self.font.render(f"Gold: {player.gold}", True, (255, 255, 0))
-        screen.blit(gold_text, (self.width//2 - gold_text.get_width()//2, 110))
+        # Gold Display with icon-like styling
+        gold_font = get_pixel_font(24)
+        gold_text = gold_font.render(f"💰 Gold: {player.gold}", True, (255, 215, 0))
+        gold_rect = gold_text.get_rect(center=(self.width // 2, 90))
+        screen.blit(gold_text, gold_rect)
 
-        # Items
-        start_y = 160
+        # Instructions at top
+        instr_font = get_pixel_font(16)
+        instr = instr_font.render("Navigate with UP/DOWN • BUY with SPACE • CLOSE with ESC", True, (150, 200, 255))
+        instr_rect = instr.get_rect(center=(self.width // 2, 125))
+        screen.blit(instr, instr_rect)
+        
+        # Decorative separator
+        pygame.draw.line(screen, (80, 150, 220), (60, 145), (self.width - 60, 145), 1)
+
+        # Items - Card-based layout
+        card_width = 350
+        card_height = 70
+        card_x = (self.width - card_width) // 2
+        start_y = 170
+        card_spacing = 85
+        
         for i, item in enumerate(self.items):
-            color = (255, 255, 255)
-            prefix = "   "
-            if i == self.selected_index:
-                color = (0, 255, 0)
-                prefix = " > "
+            card_y = start_y + i * card_spacing
             
-            # Item Text
-            text_str = f"{prefix}{item['name']}  [${item['cost']}]"
-            text_surf = self.font.render(text_str, True, color)
-            screen.blit(text_surf, (self.width//2 - text_surf.get_width()//2, start_y + i * 60))
+            is_selected = i == self.selected_index
             
-            # Description
-            if i == self.selected_index:
-                desc_surf = pygame.font.SysFont('Arial', 20).render(item['desc'], True, (200, 200, 200))
-                screen.blit(desc_surf, (self.width//2 - desc_surf.get_width()//2, start_y + i * 60 + 30))
+            # Card background
+            if is_selected:
+                card_color = (50, 120, 180)
+                border_color = (150, 220, 255)
+                border_width = 3
+                # Glow effect
+                glow_rect = pygame.Rect(card_x - 5, card_y - 5, card_width + 10, card_height + 10)
+                pygame.draw.rect(screen, (30, 70, 120), glow_rect, 1)
+            else:
+                card_color = (35, 45, 65)
+                border_color = (80, 120, 160)
+                border_width = 2
+            
+            card_rect = pygame.Rect(card_x, card_y, card_width, card_height)
+            pygame.draw.rect(screen, card_color, card_rect)
+            pygame.draw.rect(screen, border_color, card_rect, border_width)
+            
+            # Selection indicator
+            if is_selected:
+                pygame.draw.polygon(screen, (150, 220, 255), 
+                    [(card_x - 10, card_y + card_height // 2 - 5),
+                     (card_x - 10, card_y + card_height // 2 + 5),
+                     (card_x - 2, card_y + card_height // 2)])
+            
+            # Item name and cost (left side)
+            name_font = get_pixel_font(22)
+            color = (150, 220, 255) if is_selected else (200, 220, 255)
+            name_text = name_font.render(item['name'], True, color)
+            screen.blit(name_text, (card_x + 15, card_y + 8))
+            
+            # Cost (right side)
+            cost_font = get_pixel_font(20)
+            cost_color = (255, 215, 0) if player.gold >= item['cost'] else (200, 100, 100)
+            cost_text = cost_font.render(f"${item['cost']}", True, cost_color)
+            cost_rect = cost_text.get_rect(topright=(card_x + card_width - 15, card_y + 8))
+            screen.blit(cost_text, cost_rect)
+            
+            # Description (bottom of card)
+            if is_selected:
+                desc_font = get_pixel_font(16)
+                desc_text = desc_font.render(item['desc'], True, (200, 200, 200))
+                screen.blit(desc_text, (card_x + 15, card_y + 38))
+            else:
+                # Show short info for non-selected
+                desc_font = get_pixel_font(14)
+                desc_text = desc_font.render(item['desc'][:40] + "...", True, (150, 150, 150))
+                screen.blit(desc_text, (card_x + 15, card_y + 38))
         
-        # Instructions
+        # Bottom instructions
+        bottom_y = start_y + len(self.items) * card_spacing + 40
         instructions = [
-            "Use UP/DOWN arrows or W/S to navigate",
-            "Press SPACE or ENTER to buy selected item",
-            "Press ESC to close shop"
+            "Selected item details shown above",
+            "Not enough gold? Defeat enemies to earn coins!"
         ]
-        instr_font = pygame.font.SysFont('Arial', 18)
-        instr_y = start_y + len(self.items) * 60 + 50
-        for instr in instructions:
-            instr_surf = instr_font.render(instr, True, (255, 255, 255))
-            screen.blit(instr_surf, (self.width//2 - instr_surf.get_width()//2, instr_y))
-            instr_y += 25
+        small_font = get_pixel_font(16)
+        for i, instr in enumerate(instructions):
+            instr_surf = small_font.render(instr, True, (180, 180, 180))
+            screen.blit(instr_surf, (self.width // 2 - instr_surf.get_width() // 2, bottom_y + i * 25))

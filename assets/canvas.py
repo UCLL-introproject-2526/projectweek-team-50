@@ -1,8 +1,15 @@
 import pygame
 import sys
+import os
 
 # Initialize Pygame
 pygame.init()
+
+# Get parent directory and import settings
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+import sys
+sys.path.insert(0, parent_dir)
+from settings import get_pixel_font
 
 # Constants
 TILE_SIZE_SMALL = 32
@@ -42,7 +49,7 @@ painting = False
 zoom_level = 1.0  # 1.0 = 100%
 
 # Font
-font = pygame.font.SysFont(None, 24)
+font = get_pixel_font(24)
 
 # Buttons
 def draw_button(rect, text, active=True):
