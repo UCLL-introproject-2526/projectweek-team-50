@@ -193,8 +193,8 @@ class Player(Entity):
                 # Check boundaries and blocked tiles
                 if 0 <= nx < TILES_X and 0 <= ny < TILES_Y and not tilemap.is_blocked(nx, ny):
                     self.set_tile(nx, ny)
-                    # Collect coins after moving
-                    collected = coin_manager.collect_at_tile(self.tile_x, self.tile_y)
+                    # Collect coins after moving (within 1 tile)
+                    collected = coin_manager.collect_nearby(self.tile_x, self.tile_y, radius=1)
                     if collected:
                         self.gold += collected
             self.timer = 0.0
