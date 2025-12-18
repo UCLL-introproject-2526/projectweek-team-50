@@ -19,15 +19,17 @@ def handle_death(enemy, coin_manager, tilemap):
     if hasattr(enemy, 'enemy_type') and enemy.enemy_type == "boss":
         # Boss always drops 5-7 coins worth 10 TL each
         num_coins = random.randint(5, 7)
-        coin_value = random.randint(5, 10)
     else:
         # Regular enemies drop 2-3 coins worth 5-10 TL each
         num_coins = random.randint(2, 3)
-        coin_value = random.randint(5, 10)
 
-    # Spawn coins with parabolic animation
+    # Spawn coins with parabolic animation - each coin gets random value
     for _ in range(num_coins):
-        value = coin_value
+        # Randomize value for each coin individually
+        if hasattr(enemy, 'enemy_type') and enemy.enemy_type == "boss":
+            value = 10  # Boss coins always worth 10
+        else:
+            value = random.randint(5, 10)  # Regular coins random 5-10
         
         # Random offset within 3-tile radius for landing position
         offset_x = random.randint(-3, 3)
@@ -107,11 +109,53 @@ class AnimatedCoin:
             text = font.render(str(self.value), True, GOLD)
             surface.blit(text, (int(self.x) - 8, int(self.y) - 8))
 
+# Floating text that drifts upward and fades
+class FloatingText:
+    def __init__(self, tx, ty, value):
+        self.x = tx * TILE_SIZE + TILE_SIZE // 2
+        self.y = ty * TILE_SIZE + TILE_SIZE // 2
+        self.value = value
+        
+        # Animation parameters
+        self.duration = 1.0  # seconds to drift and fade
+        self.elapsed = 0.0
+        self.completed = False
+        self.drift_speed = 30  # pixels per second upward
+    
+    def update(self, dt):
+        if self.completed:
+            return
+        
+        self.elapsed += dt
+        if self.elapsed >= self.duration:
+            self.completed = True
+            return
+        
+        # Drift upward
+        self.y -= self.drift_speed * dt
+    
+    def draw(self, surface):
+        if self.completed:
+            return
+        
+        # Calculate opacity (fade out)
+        progress = self.elapsed / self.duration
+        alpha = int(255 * (1 - progress))  # Fade from 255 to 0
+        
+        # Create text surface with fade
+        font = get_pixel_font(16)
+        text_surface = font.render(str(self.value), True, (255, 215, 0))  # Gold
+        text_surface.set_alpha(alpha)
+        
+        # Draw at current position
+        surface.blit(text_surface, (int(self.x) - 8, int(self.y) - 8))
+
 # CoinManager with animation support
 class CoinManager:
     def __init__(self):
         self.coins = {}  # {(tx, ty): value} - static coins
         self.animated_coins = []  # List of AnimatedCoin objects
+        self.floating_texts = []  # List of FloatingText objects
     
     def add_coin_at_tile(self, tx, ty, value):
         """Add a static coin at a tile"""
@@ -124,9 +168,13 @@ class CoinManager:
         self.animated_coins.append(coin)
     
     def update(self, dt):
-        """Update all animated coins"""
+        """Update all animated coins and floating text"""
         for coin in self.animated_coins:
             coin.update(dt)
+        
+        # Update floating text
+        for text in self.floating_texts:
+            text.update(dt)
         
         # Move completed coins to static coins
         completed = []
@@ -138,9 +186,16 @@ class CoinManager:
         # Remove completed animated coins (in reverse order to maintain indices)
         for i in reversed(completed):
             self.animated_coins.pop(i)
+        
+        # Remove completed floating text
+        self.floating_texts = [t for t in self.floating_texts if not t.completed]
     
     def collect_at_tile(self, tx, ty):
-        return self.coins.pop((tx, ty), 0)
+        value = self.coins.pop((tx, ty), 0)
+        if value > 0:
+            # Spawn floating text at collection point
+            self.floating_texts.append(FloatingText(tx, ty, value))
+        return value
 
     def collect_nearby(self, tx, ty, radius=1):
         """Collect and remove all coins within Chebyshev distance `radius` of (tx,ty).
@@ -152,6 +207,8 @@ class CoinManager:
             if max(abs(cx - tx), abs(cy - ty)) <= radius:
                 total += val
                 to_remove.append((cx, cy))
+                # Spawn floating text for each collected coin
+                self.floating_texts.append(FloatingText(cx, cy, val))
 
         for k in to_remove:
             self.coins.pop(k, None)
@@ -172,4 +229,8 @@ class CoinManager:
         # Draw animated coins
         for coin in self.animated_coins:
             coin.draw(surface)
+        
+        # Draw floating text
+        for text in self.floating_texts:
+            text.draw(surface)
 

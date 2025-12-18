@@ -96,7 +96,7 @@ TROOP_DATA = {
         "cost": 120,
         "range": 55,
         "damage": 30,
-        "delay": 1.0,
+        "delay": 0.667,
         "color": (200, 50, 200),
         "stun_duration": 1.0,
     },
