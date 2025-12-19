@@ -25,6 +25,68 @@ class TileMap:
         # Needs decor to exist so we can start these trails from the nearby tree groves.
         self._aesthetic_path_levels = self._compute_aesthetic_paths_from_decor()
 
+        # Visual-only: extra contrast on tiles where a tower/troop was placed.
+        # level 1: converted grass->path (light contrast)
+        # level 2: placed on a visual path edge grass tile (stronger contrast)
+        self._tower_contrast_levels: dict[tuple[int, int], int] = {}
+        self._tower_contrast_surfaces: dict[int, pygame.Surface] = {}
+
+    def _get_tower_contrast_surface(self, level: int) -> pygame.Surface:
+        level = int(level)
+        surf = self._tower_contrast_surfaces.get(level)
+        if surf is not None:
+            return surf
+
+        # Use black overlays only (no new colors), just different alpha levels.
+        if level <= 1:
+            fill_a, border_a = 18, 36
+        else:
+            fill_a, border_a = 28, 54
+
+        surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+        surf.fill((0, 0, 0, fill_a))
+        pygame.draw.rect(surf, (0, 0, 0, border_a), surf.get_rect(), 1)
+        self._tower_contrast_surfaces[level] = surf
+        return surf
+
+    def apply_tower_placement(self, tx: int, ty: int) -> None:
+        """Update the ground tile visuals where a tower/troop is placed.
+
+        - If placed on grass: convert to a real path tile and add subtle contrast.
+        - If placed on a *visual path edge* grass tile (touching the core path):
+          keep the tile as grass/edge, but add stronger contrast.
+        """
+        if tx < 0 or ty < 0 or tx >= TILES_X or ty >= TILES_Y:
+            return
+
+        tile_id = self.tiles[ty][tx]
+        if tile_id != TILE_GRASS:
+            return
+
+        core_path_ids = {TILE_PATH, TILE_START, TILE_FINISH, TILE_CASTLE}
+
+        def is_core_path(x: int, y: int) -> bool:
+            if 0 <= x < TILES_X and 0 <= y < TILES_Y:
+                return self.tiles[y][x] in core_path_ids
+            return False
+
+        neighbors = (
+            is_core_path(tx + 1, ty),
+            is_core_path(tx - 1, ty),
+            is_core_path(tx, ty + 1),
+            is_core_path(tx, ty - 1),
+        )
+        touching = sum(1 for v in neighbors if v)
+
+        if touching == 1:
+            # This grass tile is already drawn as an edge tile. Just boost contrast.
+            self._tower_contrast_levels[(tx, ty)] = 2
+            return
+
+        # Plain grass tile: convert to path and add a bit of contrast.
+        self.tiles[ty][tx] = TILE_PATH
+        self._tower_contrast_levels[(tx, ty)] = 1
+
     def _build_castle_shadow(self, img: pygame.Surface | None) -> pygame.Surface | None:
         """Create a cheap silhouette shadow to draw "behind" the castle."""
         if img is None:
@@ -244,8 +306,9 @@ class TileMap:
     def _draw_castle_shadow(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         if self._castle_shadow_surface is None:
             return
-        # Small offset to read as a "back" shadow.
-        surface.blit(self._castle_shadow_surface, (rect.x + 10, rect.y + 10))
+        # Cast the shadow "behind" the castle (up/left), so it doesn't look like
+        # it's sitting in front of the building.
+        surface.blit(self._castle_shadow_surface, (rect.x - 12, rect.y - 12))
 
     def _draw_finish_castle(self, surface: pygame.Surface, *, offset: tuple[int, int] = (0, 0)) -> None:
         rect = self._get_finish_castle_rect(offset=offset)
@@ -1293,6 +1356,12 @@ class TileMap:
                     # Fallback: existing solid-color tiles (castle/walls/etc.)
                     color = TILE_COLORS[tile_id]
                     pygame.draw.rect(surface, color, (px, py, TILE_SIZE, TILE_SIZE))
+
+                # Visual-only contrast for placed towers/troops.
+                lvl = self._tower_contrast_levels.get((x, y))
+                if lvl is not None:
+                    overlay = self._get_tower_contrast_surface(lvl)
+                    surface.blit(overlay, (px, py))
 
         # Decorations (always behind player)
         for d in self._decor.get("small", []):

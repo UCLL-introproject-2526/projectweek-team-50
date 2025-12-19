@@ -16,12 +16,13 @@ class Shop:
         
         # Items for sale
         self.items = [
-            {"name": "Knight", "cost": 100,  "id": "knight", "desc": "DMG: 50 | FIRE RATE: 0.6s | RANGE: 60"},
-            {"name": "Jester", "cost": 120, "id": "jester", "desc": "DMG: 30 | FIRE RATE: 1.0s | RANGE: 55 | ABILITY: Stun 1s"},
-            {"name": "Archer", "cost": 150, "id": "archer", "desc": "DMG: 20 | FIRE RATE: 0.6s | RANGE: 160"},
-            {"name": "Wizard", "cost": 300, "id": "wizard", "desc": "DMG: 15 | FIRE RATE: 0.5s | RANGE: 240 | ABILITY: Slow 0.5s"},
-            {"name": "Musketeer", "cost": 250, "id": "musketeer", "desc": "DMG: 18 | FIRE RATE: 0.7s | RANGE: 280"},
-            {"name": "Cannon", "cost": 400, "id": "cannon", "desc": "DMG: 80 | FIRE RATE: 3.5s | RANGE: 300 | ABILITY: Fast Shot"}
+            {"name": "Goblin", "cost": 60, "id": "goblin", "desc": "MELEE | DMG: 18 | FIRE RATE: 0.50s | RANGE: 55"},
+            {"name": "Elf", "cost": 90, "id": "elf", "desc": "MELEE | DMG: 26 | FIRE RATE: 0.55s | RANGE: 65"},
+            {"name": "Knight", "cost": 130, "id": "knight", "desc": "MELEE | DMG: 40 | FIRE RATE: 0.85s | RANGE: 80 | ABILITY: Stun (first hit)"},
+            {"name": "Archer", "cost": 170, "id": "archer", "desc": "RANGED | DMG: 32 | FIRE RATE: 0.65s | RANGE: 180"},
+            {"name": "Wizard", "cost": 260, "id": "wizard", "desc": "RANGED | DMG: 42 | FIRE RATE: 0.80s | RANGE: 260 | ABILITY: Slow 0.5s"},
+            {"name": "Fire Warrior", "cost": 350, "id": "firewarrior", "desc": "MELEE | DMG: 60 | FIRE RATE: 0.75s | RANGE: 110"},
+            {"name": "Blood Mage", "cost": 500, "id": "bloodmage", "desc": "RANGED | DMG: 85 | FIRE RATE: 0.90s | RANGE: 340"}
         ]
         
         self.selected_index = 0
