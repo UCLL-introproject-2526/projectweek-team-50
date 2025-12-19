@@ -5,7 +5,7 @@ from game import Game
 def main():
     pygame.init()
 
-    # Background music (volume = 65%)
+    
     try:
         if not pygame.mixer.get_init():
             pygame.mixer.init()
@@ -18,7 +18,7 @@ def main():
         pygame.mixer.music.set_volume(0.65)
         pygame.mixer.music.play(-1)
     except Exception:
-        # If audio device/codec isn't available, run the game without music.
+        
         pass
 
     game = Game()

@@ -210,7 +210,7 @@ class Game:
         self.coin_manager = CoinManager()
 
         # Player
-        self.player.gold = 5000
+        self.player.gold = 500
         self.player.health = 100
         self.player.max_health = 100
 
