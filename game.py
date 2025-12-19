@@ -1,5 +1,6 @@
 import pygame
 import os
+import os
 import math
 import random
 from settings import *
@@ -220,6 +221,7 @@ class Game:
         # Castle
         self.castle_hp = 100
         self.castle_max_hp = 100
+        self._castle_death_sfx_played = False
         self.game_over = False
         self.game_won = False
         self.game_over_timer = 0.0  # For fade and animation effects
@@ -627,6 +629,16 @@ class Game:
                     if not self.tilemap.is_blocked(tx, ty) and not self.tilemap.is_path(tx, ty):
                         from entities.tower import Tower
                         self.towers.append(Tower((tx, ty), selected_tower))
+                        # Placement SFX ("troop" placement in UX)
+                        try:
+                            if pygame.mixer.get_init():
+                                sfx_path = os.path.join(os.path.dirname(__file__), "assets", "sounds", "Retro PowerUP StereoUP 05.wav")
+                                if os.path.exists(sfx_path):
+                                    sfx = pygame.mixer.Sound(sfx_path)
+                                    sfx.set_volume(0.20)
+                                    sfx.play()
+                        except Exception:
+                            pass
                         try:
                             self.tilemap.apply_tower_placement(tx, ty)
                         except Exception:
@@ -687,6 +699,18 @@ class Game:
         if self.castle_hp <= 0:
             self.game_over = True
             self.game_over_timer = 0.0
+            if not self._castle_death_sfx_played:
+                self._castle_death_sfx_played = True
+                try:
+                    import os
+                    if pygame.mixer.get_init():
+                        sfx_path = os.path.join(os.path.dirname(__file__), "assets", "sounds", "Retro Explosion Long 02.wav")
+                        if os.path.exists(sfx_path):
+                            sfx = pygame.mixer.Sound(sfx_path)
+                            sfx.set_volume(0.28)
+                            sfx.play()
+                except Exception:
+                    pass
 
     # -----------------------------
     # Draw

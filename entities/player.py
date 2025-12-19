@@ -41,6 +41,75 @@ class Player(Entity):
         # Current sprite for rendering
         self.current_sprite = None
 
+        # Footstep SFX (play on successful tile steps)
+        self._footstep_sound: pygame.mixer.Sound | None = None
+        self._footstep_cooldown = 0.0
+        self._footstep_interval = 0.18  # seconds between footstep sounds while moving
+        self._load_footstep_sound()
+
+        # Coin pickup SFX
+        self._coin_pickup_sound: pygame.mixer.Sound | None = None
+        self._coin_pickup_cooldown = 0.0
+        self._coin_pickup_interval = 0.06
+        self._load_coin_pickup_sound()
+
+    def _load_footstep_sound(self) -> None:
+        try:
+            if not pygame.mixer.get_init():
+                return
+        except Exception:
+            return
+
+        try:
+            asset_path = os.path.join(os.path.dirname(__file__), "..", "assets")
+            sound_path = os.path.join(asset_path, "sounds", "Retro FootStep Grass 01.wav")
+            if not os.path.exists(sound_path):
+                return
+            self._footstep_sound = pygame.mixer.Sound(sound_path)
+            # Keep it subtle.
+            self._footstep_sound.set_volume(0.12)
+        except Exception:
+            self._footstep_sound = None
+
+    def _play_footstep(self) -> None:
+        if self._footstep_sound is None:
+            return
+        if self._footstep_cooldown > 0:
+            return
+        try:
+            self._footstep_sound.play()
+        except Exception:
+            return
+        self._footstep_cooldown = self._footstep_interval
+
+    def _load_coin_pickup_sound(self) -> None:
+        try:
+            if not pygame.mixer.get_init():
+                return
+        except Exception:
+            return
+
+        try:
+            asset_path = os.path.join(os.path.dirname(__file__), "..", "assets")
+            sound_path = os.path.join(asset_path, "sounds", "Retro PickUp Coin 04.wav")
+            if not os.path.exists(sound_path):
+                return
+            self._coin_pickup_sound = pygame.mixer.Sound(sound_path)
+            self._coin_pickup_sound.set_volume(0.18)
+        except Exception:
+            self._coin_pickup_sound = None
+
+    def _play_coin_pickup(self) -> None:
+        if self._coin_pickup_sound is None:
+            return
+        if self._coin_pickup_cooldown > 0:
+            return
+        try:
+            self._coin_pickup_sound.play()
+        except Exception:
+            return
+        self._coin_pickup_cooldown = self._coin_pickup_interval
+
     def load_spritesheets(self):
         """Load spritesheet images from assets/IDLE and assets/RUN folders."""
         asset_path = os.path.join(os.path.dirname(__file__), "..", "assets")
@@ -180,6 +249,11 @@ class Player(Entity):
     def update(self, dt, tilemap, coin_manager, game):
         self.timer += dt
         self.animation_timer += dt
+
+        if self._footstep_cooldown > 0:
+            self._footstep_cooldown -= dt
+        if self._coin_pickup_cooldown > 0:
+            self._coin_pickup_cooldown -= dt
         
         # Check if moving
         dx, dy = self.handle_input()
@@ -194,10 +268,12 @@ class Player(Entity):
                 # Check boundaries and blocked tiles
                 if 0 <= nx < TILES_X and 0 <= ny < TILES_Y and not tilemap.is_blocked(nx, ny):
                     self.set_tile(nx, ny)
+                    self._play_footstep()
                     # Collect coins after moving (within 1 tile)
                     collected = coin_manager.collect_nearby(self.tile_x, self.tile_y, radius=1)
                     if collected:
                         self.gold += collected
+                        self._play_coin_pickup()
             self.timer = 0.0
         
         # Update animation frame

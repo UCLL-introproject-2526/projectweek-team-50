@@ -1,9 +1,43 @@
+import os
 import pygame
 import math
 from settings import YELLOW
 from coins import handle_death
 from settings import TILE_SIZE
 from asset_manager import get_projectile_frames
+
+
+_SFX_CACHE: dict[str, pygame.mixer.Sound | None] = {}
+
+
+def _play_sfx(filename: str, *, volume: float) -> None:
+    key = f"{filename}|{volume:.3f}"
+    s = _SFX_CACHE.get(key)
+    if key not in _SFX_CACHE:
+        try:
+            if not pygame.mixer.get_init():
+                _SFX_CACHE[key] = None
+                s = None
+            else:
+                base = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "sounds"))
+                path = os.path.join(base, filename)
+                if os.path.exists(path):
+                    s = pygame.mixer.Sound(path)
+                    s.set_volume(max(0.0, min(1.0, float(volume))))
+                    _SFX_CACHE[key] = s
+                else:
+                    _SFX_CACHE[key] = None
+                    s = None
+        except Exception:
+            _SFX_CACHE[key] = None
+            s = None
+
+    if s is None:
+        return
+    try:
+        s.play()
+    except Exception:
+        pass
 
 # Projectile optionally receives coin_manager and tilemap so it can trigger coin drops
 
@@ -67,6 +101,10 @@ class Projectile:
         if hit:
             self.target.health -= self.damage
             self.target.killed_by_tower = True  # Mark as killed by tower for coin drops
+
+            # Boss damage feedback
+            if getattr(self.target, 'enemy_type', '').lower() == 'boss':
+                _play_sfx("21_orc_damage_3.wav", volume=0.14)
             
             # Apply slow effect if wizard
             if self.slow_duration > 0:

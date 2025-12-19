@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+import os
 from settings import GOLD, YELLOW, get_pixel_font
 
 class Casino:
@@ -27,8 +28,37 @@ class Casino:
         self.won_troop = None
         self.show_win = False
         self.win_timer = 0.0
+
+        # Win SFX
+        self._win_sound: pygame.mixer.Sound | None = None
+        self._load_win_sound()
         
         self.input_cooldown = 0
+
+    def _load_win_sound(self) -> None:
+        try:
+            if not pygame.mixer.get_init():
+                return
+        except Exception:
+            return
+
+        try:
+            asset_path = os.path.join(os.path.dirname(__file__), "assets", "sounds")
+            sound_path = os.path.join(asset_path, "Retro Weird 07.wav")
+            if not os.path.exists(sound_path):
+                return
+            self._win_sound = pygame.mixer.Sound(sound_path)
+            self._win_sound.set_volume(0.22)
+        except Exception:
+            self._win_sound = None
+
+    def _play_win_sound(self) -> None:
+        if self._win_sound is None:
+            return
+        try:
+            self._win_sound.play()
+        except Exception:
+            pass
 
     def toggle(self):
         self.active = not self.active
@@ -80,6 +110,9 @@ class Casino:
                 self.animating = False
                 self.show_win = True
                 self.win_timer = 0.0
+
+                # Play win SFX once per awarded item
+                self._play_win_sound()
                 
                 # Add troop to inventory
                 if self.won_troop and player:

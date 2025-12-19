@@ -1,9 +1,52 @@
+import os
 import pygame
 from entities.entity import Entity
 from entities.projectile import Projectile
 from settings import RED, GREEN, BLUE, TILE_SIZE
 from asset_manager import get_tower_sprites
 from render_utils import draw_ellipse_shadow
+
+
+_SFX_CACHE: dict[str, pygame.mixer.Sound | None] = {}
+
+
+def _get_sfx(filename: str, *, volume: float) -> pygame.mixer.Sound | None:
+    """Load a wav from assets/sounds once and reuse it."""
+    key = f"{filename}|{volume:.3f}"
+    if key in _SFX_CACHE:
+        return _SFX_CACHE[key]
+
+    try:
+        if not pygame.mixer.get_init():
+            _SFX_CACHE[key] = None
+            return None
+    except Exception:
+        _SFX_CACHE[key] = None
+        return None
+
+    try:
+        base = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "sounds"))
+        path = os.path.join(base, filename)
+        if not os.path.exists(path):
+            _SFX_CACHE[key] = None
+            return None
+        s = pygame.mixer.Sound(path)
+        s.set_volume(max(0.0, min(1.0, float(volume))))
+        _SFX_CACHE[key] = s
+        return s
+    except Exception:
+        _SFX_CACHE[key] = None
+        return None
+
+
+def _play_sfx(filename: str, *, volume: float) -> None:
+    s = _get_sfx(filename, volume=volume)
+    if s is None:
+        return
+    try:
+        s.play()
+    except Exception:
+        pass
 
 class Tower(Entity):
     def __init__(self, tile_pos, tower_type):
@@ -206,6 +249,18 @@ class Tower(Entity):
             target.health -= self.damage
             target.killed_by_tower = True
             self.attack_timer = min_show
+
+            # Melee hit SFX
+            if self.type == 'knight':
+                _play_sfx("07_human_atk_sword_2.wav", volume=0.22)
+            elif self.type == 'elf':
+                _play_sfx("26_sword_hit_1.wav", volume=0.20)
+            elif self.type == 'firewarrior':
+                _play_sfx("10_human_special_atk_1.wav", volume=0.22)
+
+            # Extra boss damage feedback
+            if getattr(target, 'enemy_type', '').lower() == 'boss':
+                _play_sfx("21_orc_damage_3.wav", volume=0.14)
             
             # Knight stuns the enemy only on first hit
             if self.type == 'knight' and not target.has_been_stunned:
@@ -224,6 +279,16 @@ class Tower(Entity):
         else:
             # Other towers use projectiles
             self.attack_timer = min_show
+
+            # Fire SFX per ranged tower
+            if self.type == 'archer':
+                _play_sfx("Retro Weapon Arrow 02.wav", volume=0.22)
+            elif self.type == 'wizard':
+                _play_sfx("Retro Blop 07.wav", volume=0.18)
+            elif self.type == 'bloodmage':
+                # Use an electric shot SFX.
+                _play_sfx("Retro Weapon Electric 05.wav", volume=0.20)
+
             projectiles.append(
                 Projectile(
                     self.rect.centerx,
