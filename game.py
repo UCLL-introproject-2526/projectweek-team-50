@@ -779,7 +779,7 @@ class Game:
         # Draw money
         money_text = self.font.render(f"Money: {self.player.gold} TL", True, WHITE)
         self.screen.blit(money_text, (SCREEN_WIDTH//2 - money_text.get_width()//2, 10))
-        
+
         # Draw player health bar
         health_bar_width = 200
         health_bar_height = 15
@@ -788,25 +788,25 @@ class Game:
         inventory_bar_height = 70
         inventory_bar_y = min(int(SCREEN_HEIGHT * 0.90), SCREEN_HEIGHT - inventory_bar_height)
         health_bar_y = inventory_bar_y - health_bar_height - 10
-        
+
         # Background bar
         pygame.draw.rect(self.screen, BLACK, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
-        
+
         # Health bar with damage flash
         if self.player.max_health > 0:
             health_ratio = max(0, self.player.health / self.player.max_health)
-            
+
             # Determine color: flash red when damaged, otherwise green/yellow/red based on health
             if self.damage_flash_timer > 0:
                 health_color = (255, 0, 0)  # Red flash
             else:
                 health_color = (0, 255, 0) if health_ratio > 0.5 else (255, 255, 0) if health_ratio > 0.25 else (255, 0, 0)
-            
+
             pygame.draw.rect(self.screen, health_color, (health_bar_x, health_bar_y, health_bar_width * health_ratio, health_bar_height))
-        
+
         # Border
         pygame.draw.rect(self.screen, WHITE, (health_bar_x, health_bar_y, health_bar_width, health_bar_height), 2)
-        
+
         # Health text
         health_text = self.font.render(f"HP: {int(self.player.health)}/{self.player.max_health}", True, WHITE)
         self.screen.blit(health_text, (health_bar_x + health_bar_width + 10, health_bar_y + 2))
@@ -833,7 +833,7 @@ class Game:
 
         if self.shop.active:
             self.shop.draw(self.screen, self.player)
-        
+
         if self.casino.active:
             self.casino.draw(self.screen, self.player)
 
@@ -857,21 +857,21 @@ class Game:
         if self.startup_message_active and self.startup_message_timer > 0:
             msg_font = get_pixel_font(32)
             msg_text = "THE GAME HAS STARTED : USE WASD TO NAVIGATE TO THE SHOP TO PROTECT YOUR KINGDOM!"
-            
+
             # Create text surface
             text_surface = msg_font.render(msg_text, True, (255, 255, 0))
             text_surface.set_alpha(self.startup_message_alpha)
-            
+
             # Draw text just above inventory bar
             text_x = SCREEN_WIDTH // 2 - text_surface.get_width() // 2
             text_y = SCREEN_HEIGHT - 130
             self.screen.blit(text_surface, (text_x, text_y))
-        
+
         # Draw damage flash animation (red pulsate and edges)
         if self.damage_flash_timer > 0:
             # Calculate flash intensity (0 to 1)
             flash_intensity = self.damage_flash_timer / 0.3
-            
+
             # Red edge effect
             edge_thickness = int(20 * flash_intensity)
             if edge_thickness > 0:
@@ -879,7 +879,7 @@ class Game:
                 pygame.draw.rect(self.screen, (255, 0, 0), (0, SCREEN_HEIGHT - edge_thickness, SCREEN_WIDTH, edge_thickness))  # Bottom
                 pygame.draw.rect(self.screen, (255, 0, 0), (0, 0, edge_thickness, SCREEN_HEIGHT))  # Left
                 pygame.draw.rect(self.screen, (255, 0, 0), (SCREEN_WIDTH - edge_thickness, 0, edge_thickness, SCREEN_HEIGHT))  # Right
-            
+
             # Red flash overlay with pulsate effect
             overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
             overlay_alpha = int(100 * flash_intensity)
@@ -894,19 +894,19 @@ class Game:
             overlay.set_alpha(150)
             overlay.fill((0, 0, 0))
             self.screen.blit(overlay, (0, 0))
-            
+
             # Announcement text with countdown
             announcement_font = get_pixel_font(72)
             small_font = get_pixel_font(48)
-            
+
             announcement_text = announcement_font.render(self.wave_manager.announcement_text, True, (255, 255, 0))
             text_rect = announcement_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 60))
             self.screen.blit(announcement_text, text_rect)
-            
+
             # Show countdown numbers with colors
             remaining_time = max(0, self.wave_manager.announcement_duration - self.wave_manager.announcement_timer)
             countdown = int(remaining_time) + 1
-            
+
             if countdown > 0 and countdown <= 3:
                 colors = {3: (255, 0, 0), 2: (255, 128, 0), 1: (0, 255, 0)}
                 countdown_color = colors.get(countdown, (255, 255, 0))
@@ -917,18 +917,18 @@ class Game:
         # Draw game over or victory screen
         if self.game_over or self.game_won:
             self.game_over_timer += 1.0 / 60.0  # Approximate dt
-            
+
             # Fade background to black - gradually increases
             fade_alpha = min(200, int((self.game_over_timer / 3.0) * 200))  # Fade over 3 seconds
             overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
             overlay.set_alpha(fade_alpha)
             overlay.fill((0, 0, 0))
             self.screen.blit(overlay, (0, 0))
-            
+
             # Create slamming animation - scale and bounce
             time_offset = self.game_over_timer * 2  # Speed up the animation
             slam_scale = 1.0 + min(0.3, max(0, 1.0 - time_offset) * 0.3)  # Slam effect
-            
+
             if self.game_over:
                 # Game over text - red with slamming animation
                 base_font_size = int(100 * slam_scale)
@@ -936,7 +936,7 @@ class Game:
                 game_over_text = game_over_font.render("YOU LOSE!!!!!!!!", True, (255, 0, 0))
                 game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
                 self.screen.blit(game_over_text, game_over_rect)
-                
+
                 # Skill issue text - slightly smaller and lower
                 skill_font_size = int(70 * slam_scale)
                 skill_font = get_pixel_font(skill_font_size)
@@ -981,6 +981,7 @@ class Game:
 
         # ===== PROPER SCALING =====
         self._present()
+
 
     def _present(self):
         window_w, window_h = self.window.get_size()

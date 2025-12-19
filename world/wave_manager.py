@@ -88,6 +88,11 @@ class WaveManager:
             
             # Base stats for boss
             health = 500 + (wave_num - 1) * 300  # 500, 800, 1100, 1400, 1700
+            # Nerf specific bosses that are currently too tanky.
+            if wave_num == 1:
+                health = 350
+            elif wave_num == 4:
+                health = 1000
             reward = 100 + (wave_num - 1) * 50  # 100, 150, 200, 250, 300
             speed = 0.5  # Base speed
             
@@ -101,7 +106,8 @@ class WaveManager:
                     health=health,
                     speed=speed,
                     reward=reward,
-                    enemy_type="boss"
+                    enemy_type="boss",
+                    wave_num=self.current_wave,
                 )
             )
         elif self.current_wave == 1:
@@ -116,7 +122,8 @@ class WaveManager:
                     health=health,
                     speed=speed,
                     reward=reward,
-                    enemy_type=enemy_type
+                    enemy_type=enemy_type,
+                    wave_num=self.current_wave,
                 )
             )
         else:
@@ -142,6 +149,7 @@ class WaveManager:
                     health=health,
                     speed=speed,
                     reward=reward,
-                    enemy_type=enemy_type
+                    enemy_type=enemy_type,
+                    wave_num=self.current_wave,
                 )
             )

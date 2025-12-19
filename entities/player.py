@@ -1,6 +1,6 @@
 import pygame
 import os
-from settings import WHITE, TILES_X, TILES_Y, TILE_SIZE
+from settings import WHITE, TILES_X, TILES_Y, TILE_SIZE, PLAYER_SPRITE_SCALE
 from entities.entity import Entity
 from inventory import Inventory
 
@@ -29,7 +29,7 @@ class Player(Entity):
 
         # Draw the player slightly larger than a single tile (visual-only).
         # Movement/collision still use the base TILE_SIZE rect.
-        self.sprite_draw_size = int(TILE_SIZE * 1.2)
+        self.sprite_draw_size = int(TILE_SIZE * PLAYER_SPRITE_SCALE)
         self.last_drawn_sprite = None
         
         # Load spritesheets
