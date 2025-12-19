@@ -18,7 +18,7 @@ class Casino:
         self.overlay.fill((0, 0, 0))
         
         # Available troops to win
-        self.available_troops = ["knight", "archer", "wizard", "musketeer", "jester", "cannon"]
+        self.available_troops = ["goblin", "elf", "knight", "archer", "wizard", "firewarrior", "bloodmage"]
         
         # Animation state
         self.animating = False

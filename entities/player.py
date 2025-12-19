@@ -3,6 +3,7 @@ import os
 from settings import WHITE, TILES_X, TILES_Y, TILE_SIZE, PLAYER_SPRITE_SCALE
 from entities.entity import Entity
 from inventory import Inventory
+from render_utils import draw_ellipse_shadow
 
 class Player(Entity):
     def __init__(self, tile_pos):
@@ -222,6 +223,11 @@ class Player(Entity):
         sprite_dict = self.run_sprites if self.is_moving else self.idle_sprites
         sprite_rect = pygame.Rect(0, 0, self.sprite_draw_size, self.sprite_draw_size)
         sprite_rect.center = (self.rect.centerx + ox, self.rect.centery + oy)
+
+        # Ground shadow (draw first so the sprite appears above it)
+        shadow_center = (sprite_rect.centerx, sprite_rect.bottom - int(sprite_rect.height * 0.18))
+        shadow_size = (int(sprite_rect.width * 0.55), max(6, int(sprite_rect.height * 0.18)))
+        draw_ellipse_shadow(surface, center=shadow_center, size=shadow_size, alpha=85, offset=(0, 2))
 
         if self.direction in sprite_dict and sprite_dict[self.direction]:
             frames = sprite_dict[self.direction]

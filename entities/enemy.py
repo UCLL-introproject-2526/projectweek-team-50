@@ -2,6 +2,7 @@ import os
 import math
 import pygame
 from settings import TILE_SIZE, RED, GREEN, BLACK
+from render_utils import draw_ellipse_shadow
 
 
 # Cache loaded animation frames across all Enemy instances.
@@ -292,12 +293,16 @@ def _load_enemy_frames(wave_num: int, enemy_type: str) -> dict[str, list[pygame.
     if enemy_type == "boss":
         preferred = os.path.join(root, f"boss wave {wave_num}.png")
         if os.path.exists(preferred):
-            return _load_integrated_sheet(preferred, layout="boss")
+            # Wave 1 boss sheet uses the default row order (Down, Left, Right, Up).
+            # Using the generic "boss" mapping makes left show the back (up) row.
+            layout = "default" if int(wave_num) == 1 else "boss"
+            return _load_integrated_sheet(preferred, layout=layout)
         # Fallback: any boss*.png in that wave.
         try:
             for n in os.listdir(root):
                 if n.lower().startswith("boss") and n.lower().endswith(".png"):
-                    return _load_integrated_sheet(os.path.join(root, n), layout="boss")
+                    layout = "default" if int(wave_num) == 1 else "boss"
+                    return _load_integrated_sheet(os.path.join(root, n), layout=layout)
         except Exception:
             pass
         return {"down": [], "up": [], "left": [], "right": []}
@@ -504,11 +509,20 @@ class Enemy:
             frame = frames[self._anim_frame % len(frames)]
             if frame is not None:
                 dst = frame.get_rect(center=rect.center)
+                # Remove shadows for the standard rats.
+                if self.enemy_type != "standard":
+                    shadow_center = (dst.centerx, dst.bottom - int(dst.height * 0.18))
+                    shadow_size = (int(dst.width * 0.55), max(6, int(dst.height * 0.16)))
+                    draw_ellipse_shadow(surface, center=shadow_center, size=shadow_size, alpha=80, offset=(0, 2))
                 surface.blit(frame, dst)
                 drew_sprite = True
 
         # Fallback to old shapes if sprite assets are missing.
         if not drew_sprite:
+            # Ground shadow for shape fallback
+            shadow_center = (rect.centerx, rect.centery + int(self.radius * 0.6))
+            shadow_size = (int(self.radius * 2.1), max(6, int(self.radius * 0.9)))
+            draw_ellipse_shadow(surface, center=shadow_center, size=shadow_size, alpha=70, offset=(0, 0))
             if self.enemy_type == "fast_weak":
                 pygame.draw.circle(surface, self.color, rect.center, self.radius)
             elif self.enemy_type == "slow_strong":

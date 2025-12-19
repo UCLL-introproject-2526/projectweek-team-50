@@ -1,31 +1,56 @@
 from entities.troop import Troop
 
-class Jester(Troop):
+class Goblin(Troop):
     def __init__(self, tile_pos):
-        # Melee unit: Short range, fast attack?
-        super().__init__(tile_pos, range_radius=60, fire_delay=0.5)
-        self.name = "Jester"
+        # Melee (weakest)
+        super().__init__(tile_pos, range_radius=55, fire_delay=0.50, damage=18)
+        self.name = "Goblin"
+        self.sprite_type = "goblin"
+
+
+class Elf(Troop):
+    def __init__(self, tile_pos):
+        # Melee
+        super().__init__(tile_pos, range_radius=65, fire_delay=0.55, damage=26)
+        self.name = "Elf"
+        self.sprite_type = "elf"
+
 
 class Knight(Troop):
     def __init__(self, tile_pos):
-        # Melee unit: Short range, tanky?
-        super().__init__(tile_pos, range_radius=50, fire_delay=1.5)
+        # Melee (stronger)
+        super().__init__(tile_pos, range_radius=80, fire_delay=0.85, damage=40)
         self.name = "Knight"
+        self.sprite_type = "knight"
+
 
 class Archer(Troop):
     def __init__(self, tile_pos):
-        # Standard ranged unit
-        super().__init__(tile_pos, range_radius=200, fire_delay=0.8)
+        # Medium ranged
+        super().__init__(tile_pos, range_radius=180, fire_delay=0.65, damage=32)
         self.name = "Archer"
+        self.sprite_type = "archer"
+
 
 class Wizard(Troop):
     def __init__(self, tile_pos):
-        # Long range or AOE with slow effect?
-        super().__init__(tile_pos, range_radius=180, fire_delay=1.5, slow_duration=0.5)
+        # High range with slow
+        super().__init__(tile_pos, range_radius=260, fire_delay=0.80, damage=42, slow_duration=0.5)
         self.name = "Wizard"
+        self.sprite_type = "wizard"
 
-class Cannon(Troop):
+
+class FireWarrior(Troop):
     def __init__(self, tile_pos):
-        # Very long range, slow fire
-        super().__init__(tile_pos, range_radius=300, fire_delay=2.5)
-        self.name = "Cannon"
+        # Melee but bigger range
+        super().__init__(tile_pos, range_radius=110, fire_delay=0.75, damage=60)
+        self.name = "Fire Warrior"
+        self.sprite_type = "firewarrior"
+
+
+class BloodMage(Troop):
+    def __init__(self, tile_pos):
+        # Strongest: very high range
+        super().__init__(tile_pos, range_radius=340, fire_delay=0.90, damage=85)
+        self.name = "Blood Mage"
+        self.sprite_type = "bloodmage"

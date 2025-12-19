@@ -157,6 +157,7 @@ class Game:
         # Pause/menu buttons (logical coords)
         self.pause_button_rect = pygame.Rect(SCREEN_WIDTH - 130, 12, 118, 36)
         self.menu_play_rect = pygame.Rect(SCREEN_WIDTH // 2 - 140, int(SCREEN_HEIGHT * 0.62), 280, 58)
+        self.menu_exit_rect = pygame.Rect(SCREEN_WIDTH // 2 - 140, int(SCREEN_HEIGHT * 0.62) + 70, 280, 46)
         self.menu_levels_rect = pygame.Rect(SCREEN_WIDTH // 2 - 240, int(SCREEN_HEIGHT * 0.25), 480, 260)
         self.pause_resume_rect = pygame.Rect(SCREEN_WIDTH // 2 - 160, SCREEN_HEIGHT // 2 - 20, 320, 52)
         self.pause_menu_rect = pygame.Rect(SCREEN_WIDTH // 2 - 160, SCREEN_HEIGHT // 2 + 52, 320, 52)
@@ -226,7 +227,7 @@ class Game:
         # Wave system
         self.wave_manager = WaveManager(self.tilemap)
         self.current_wave = 0
-        self.max_waves = 5
+        self.max_waves = self.wave_manager.max_waves
         self.wave_manager.start_wave(self.current_wave + 1)
 
         # Game state
@@ -460,6 +461,10 @@ class Game:
                         self._load_selected_level_and_play()
                         continue
 
+                    if self.menu_exit_rect.collidepoint(lx, ly):
+                        self.running = False
+                        continue
+
                     if self.menu_levels_rect.collidepoint(lx, ly):
                         # Pick a row based on click position
                         item_h = 30
@@ -622,6 +627,10 @@ class Game:
                     if not self.tilemap.is_blocked(tx, ty) and not self.tilemap.is_path(tx, ty):
                         from entities.tower import Tower
                         self.towers.append(Tower((tx, ty), selected_tower))
+                        try:
+                            self.tilemap.apply_tower_placement(tx, ty)
+                        except Exception:
+                            pass
                         self.player.inventory.remove_item(selected_tower)
                         self.placement_cooldown = 0.2  # 200ms cooldown between placements
                         # Only deselect if the selected slot is now empty
@@ -1072,6 +1081,20 @@ class Game:
         if self.menu_message:
             msg = get_pixel_font(22).render(self.menu_message, True, (255, 100, 100))
             self.screen.blit(msg, (SCREEN_WIDTH // 2 - msg.get_width() // 2, self.menu_play_rect.bottom + 14))
+
+        # Exit button
+        hover_exit = mouse is not None and self.menu_exit_rect.collidepoint(mouse)
+        exit_col = BUTTON_HOVER_COLOR if hover_exit else BUTTON_COLOR
+        pygame.draw.rect(self.screen, exit_col, self.menu_exit_rect, border_radius=10)
+        pygame.draw.rect(self.screen, WHITE, self.menu_exit_rect, 2, border_radius=10)
+        exit_text = get_pixel_font(28).render("EXIT GAME", True, TEXT_COLOR)
+        self.screen.blit(
+            exit_text,
+            (
+                self.menu_exit_rect.centerx - exit_text.get_width() // 2,
+                self.menu_exit_rect.centery - exit_text.get_height() // 2,
+            ),
+        )
 
     # -----------------------------
     # Main Loop

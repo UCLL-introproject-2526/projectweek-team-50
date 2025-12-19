@@ -7,7 +7,8 @@ class WaveManager:
         self.path_points = tilemap.get_path_points()
 
         self.current_wave = 0
-        self.max_waves = 3
+        # Assets exist for waves 1-5.
+        self.max_waves = 5
         self.wave_index = 0
         self.spawn_timer = 0.0
         self.spawn_delay = 1.8  # seconds between enemies
